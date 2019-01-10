@@ -1,0 +1,274 @@
+// constructor for raider
+function Raider(name, role, split) {
+  this.name = name;
+  this.role = role;
+  this.split = split;
+  
+  // change methods for constructor properties
+  this.addSplit = function(amount) { this.split += amount; };
+  this.changeRole = function(newRole) { this.role = newRole; };
+  
+  // return methods for constructor properties
+  this.returnSplit = function() { return this.split; };
+  this.returnName = function() { return this.name; };
+  this.returnRole = function() { return this.role; };
+}
+
+// function called from ss to calculate split
+function printSplit(b1Split, b2Split, b3Split, b4Split, Raiders, benchedRaiders) {
+  // ~45ms to calculate with benched, ~55ms to calculate w/o benched
+  var start_time = new Date().getTime();
+  
+  // variables
+  var raiderList = [],
+      raidList = [];
+    
+  // ~8ms w/o
+  var list_start = new Date().getTime();
+  // create the list
+  raiderList = makeList(raiderList, Raiders);
+  raiderList = makeList(raiderList, benchedRaiders);
+  var list_stop = new Date().getTime();
+  
+  // ~60ms w/o
+  var calculate_start = new Date().getTime();
+  // calculate the splits
+  raiderList = calculateSplit(raiderList, [b1Split, b2Split, b3Split, b4Split], Raiders, benchedRaiders, 0);
+ 
+  // move raider and split onto array to print
+  for (var i = 0, rNum = raiderList.length; i < rNum; i++) {
+    raidList.push([raiderList[i].returnName(), raiderList[i].returnSplit()]);
+  }
+  var calculate_stop = new Date().getTime();
+  raidList.push(["time", (new Date().getTime() - start_time)]);
+  raidList.push(["list", (list_stop - list_start)]);
+  raidList.push(["calc", (calculate_stop - calculate_start)]);
+  return raidList;
+}
+
+// function to populate raidList
+function makeList(list, raiders, bossNum) {
+  
+  // constant
+  const blanks = ["", "?"];
+  
+  // loop through each cow and column
+  for (var b = 0, bNum = raiders.length; b < bNum; b++) {
+    for (var c = 0; c < 4; c++) {
+      // if the cell is blank or it's a buyer
+      if ((blanks.indexOf(raiders[b][c]) === -1) &&
+          (raiders[b][c].indexOf("buyer") === -1)){
+        // if the raider isn't on the list, add them
+        if (!checkList(list, raiders[b][c])) {
+          var raider = new Raider(raiders[b][c], "", 0);
+          list.push(raider);
+        }
+      }
+    }
+  }
+  
+  return list;
+}
+
+// function to calculate split based on boss number
+function calculateSplit(raidList, loot, raiders, benchedRaiders, bossNum) {
+  
+  // variables
+  var item = "",
+      buyer = "",
+      itemCost = 0,
+      numBenched = countRaiders([], benchedRaiders, bossNum),
+      numRaider = countRaiders(raiders, benchedRaiders, bossNum);
+  
+  // add the benched raiders to the list
+  raiders.push(benchedRaiders[0][bossNum], benchedRaiders[1][bossNum], benchedRaiders[2][bossNum]);
+  
+  for (var s = 0, sNum = loot.length; s < sNum; s++) {
+    for (var t = 0, tNum = loot[0].length; t < tNum; t++) {
+      item = (loot[s])[t][0];
+      itemCost = (loot[s])[t][1];
+      buyer = (loot[s])[t][2];
+      
+      // if the item cost is not 0
+      if (itemCost !== 0) {
+        // if there is a buyer, no one benched, or the item isn't an entrance
+        if ((buyer !== "") || (numBenched < 1) ||
+          (item.toLowerCase() !== "entrance")) {
+            // loop through the raiders and raid list
+            for (var b = 0, rNum = raiders.length; b < rNum; b++) {
+              for (var r = 0, raNum = raidList.length; r < raNum; r++) {
+                // if the raider isn't the buyer, give split
+                if ((String(raiders[b][bossNum]).toLowerCase() !== buyer.toLowerCase()) && 
+                  (String(raiders[b][bossNum]).toLowerCase() === raidList[r].returnName().toLowerCase())) {                  
+                    // if it's an entrance fee split, split among all raiders 
+                    raidList[r].addSplit(itemCost / ((buyer !== "") ? (numRaider - 1) : numRaider));
+                  }
+              }
+            }
+            // otherwise
+          } else {
+            // loop through list of benched raiders and raid list
+            for (var b = 0, rNum = benchedRaiders.length; b < rNum; b++) {
+              for (var r = 0, raNum = raidList.length; r < raNum; r++) {
+                // if the benched raider matches the raid list member, split the entrance among the benched
+                if (String(benchedRaiders[b][bossNum]).toLowerCase() === raidList[r].returnName().toLowerCase()) {
+                  raidList[r].addSplit(itemCost / numBenched);
+                }
+              }
+            }
+          }
+      }
+    }
+  }
+  return raidList;
+}
+
+// function to count raiders
+function countRaiders(raiders, benchedRaiders, bossNum) {
+  var numRaider = 0;
+  
+  // calculate main raiders
+  for (var r = 0, rNum = raiders.length; r < rNum; r++) {
+    if (raiders[r][0] !== "") {
+      numRaider++;
+    }
+  }
+  
+  // calculate benched raiders
+  for (var b = 0, bNum = benchedRaiders.length; b < bNum; b++) {
+    if (benchedRaiders[b][bossNum] !== "") {
+      numRaider++;
+    }
+  }
+
+  return numRaider;
+}
+
+// function to check if the raider is in the raidList
+function checkList(list, r) {
+  // loop through list of raiders
+  for (var c = 0, cNum = list.length; c < cNum; c++) {
+    // if the raider is found, return true
+    if (list[c].returnName().toLowerCase() === r.toLowerCase()) {
+      return true;
+    }
+  }
+  return false;
+}
+
+// function for creating log
+function onEdit(e) {
+  // name of the page
+  var ssName = "Loot List";
+  var ss = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ssName);
+  if (e.source.getActiveSheet().getName() === ssName) {
+    var cell = ss.getRange("C44").getValue();
+    var cell2 = ss.getRange("C45").getValue();
+    var cell3 = ss.getRange("C46").getValue();
+    
+    if ((cell !== "") && (cell.toLowerCase() === "y")) {
+      ss.getRange("C44").setValue("N");
+      var oldRange = "F49:Y687";
+      var oldData = ss.getRange(oldRange).getValues();
+      var currentSplits = ss.getRange("G19:H35").getValues();
+      var randc = calculateFreeRandC(oldData);
+      var row = randc[0];
+      var col = randc[1];
+      oldData[row][col] = "Raid " + ss.getRange("G2").getValue();
+      var today = new Date();
+      oldData[row][col+1] = (today.getMonth() + 1) + "/" + today.getDate() + "/" + today.getYear();
+      for (var i = 0, cLength = currentSplits.length; i < cLength; i++) {
+        if (currentSplits[i][0] != "") {
+          oldData[i+row][col] = currentSplits[i][0];
+          oldData[i+row][col+1] = currentSplits[i][1].toFixed(2);
+        }
+      }                
+      ss.getRange(oldRange).setValues(oldData);
+    } else if ((cell2 !== "") && (cell2.toLowerCase() === "y")) {
+      ss.getRange("C45").setValue("N");
+      for (var i = 2; i < 42; i++) {
+        ss.getRange("C" + i).setValue(0);
+        ss.getRange("D" + i).setValue('');
+        if ((i % 10) == 0) {
+          i++;
+        }
+      }
+      for (var i = 20; i < 36; i++) {
+        ss.getRange("I" + i).setValue('');
+      }
+    } else if ((cell3 !== "") && (cell3.toLowerCase() === "y")) {
+      ss.getRange("C46").setValue("N");
+      var oldData = ss.getRange("G20:I35").getValues();
+      var currentList = ss.getRange("A49:B687").getValues();
+      var people = new Array(),
+          gold = new Array();
+      
+      for (var o = 0, oLength = oldData.length; o < oLength; o++) {
+        if ((oldData[o][0] !== "") && (oldData[o][2] !== "x")) {
+          people.push(oldData[o][0]);
+          gold.push(oldData[o][1]);
+        }
+      }
+      
+      var startingCellNum = 49;
+      var foundPerson = false;      
+      var currentListSize = calculateSize(ss.getRange("A49:B687").getValues());
+      
+      for (var p = 0, pLength = people.length; p < pLength; p++) {
+        if (ss.getRange("A" + startingCellNum).getValue() === "") {
+          ss.getRange("A" + startingCellNum).setValue(people[p]);
+          ss.getRange("B" + startingCellNum).setValue(gold[p].toFixed(2));
+        } else {
+          currentListSize = calculateSize(ss.getRange("A49:B687").getValues());
+          for (var l = 0; l < currentListSize; l++) {
+            if (currentList[l][0] === people[p]) {
+              ss.getRange("B" + (startingCellNum + l)).setValue((ss.getRange("B" + (startingCellNum + l)).getValue() + gold[p]).toFixed(2));
+              foundPerson = true;
+            }
+          }
+          if (foundPerson === false) {
+            currentListSize = calculateSize(ss.getRange("A49:B687").getValues());
+            ss.getRange("A" + (startingCellNum + currentListSize)).setValue(people[p]);
+            ss.getRange("B" + (startingCellNum + currentListSize)).setValue(gold[p].toFixed(2));
+          }
+          foundPerson = false;
+        }
+        
+      }
+      
+    }
+       
+    
+  }
+    
+}
+
+function calculateSize(list) {
+  var size = 0;
+  for (var i = 0, iLength = list.length; i < iLength; i++) {
+    if (list[i][0] !== "") {
+      size++;
+    }
+  }
+  return size;
+}
+
+function biggerNum(size1, size2) {
+  if (size1 > size2) {
+    return size1;
+  }
+  return size2;
+}
+
+function calculateFreeRandC(range) {
+  for (var i = 0, rLength = range.length; i < rLength; i+=7) {
+    for (var j = 0, rLength2 = range[i].length - 3; j < rLength2; j+=3) {
+      if ((range[i][j] === "") && (range[i+1][j] === "")) {
+        if ((i !== 0) && (range[i-1][j] !== "")) {
+          return [i+1, j];
+        }
+        return [i, j];
+      }
+    }
+  }
+}

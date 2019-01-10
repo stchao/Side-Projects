@@ -1,0 +1,290 @@
+function calcTTSplit(b1, b2, b3, b4, raiders) {
+  // variables
+  var result = [],
+      people = [],
+      amount = [],
+      raiders1 = [],
+      raiders2 = [],
+      raiders3 = [],
+      raiders4 = [],
+      benchedRaiders = [],
+      numBenchedRaiders = [];
+  
+  // create the list
+  people = makeRaidersList(0, raiders);
+  raiders1 = makeRaidersList(0, raiders);
+  raiders2 = makeRaidersList(1, raiders);
+  raiders3 = makeRaidersList(2, raiders);
+  raiders4 = makeRaidersList(3, raiders);
+  benchedRaiders.push(raiders[12], raiders[13], raiders[14]);
+  people = addMissingRaiders(people, raiders1, raiders2, raiders3, raiders4);
+
+  // populate the array with 0's
+  for (var m = 0, mLength = people.length; m < mLength; m++) {
+    amount[m] = 0;
+  }
+  
+  // calculate the splits
+  amount = calculate(amount, people, raiders1, b1, benchedRaiders, 0);
+  amount = calculate(amount, people, raiders2, b2, benchedRaiders, 1);
+  amount = calculate(amount, people, raiders3, b3, benchedRaiders, 2);
+  amount = calculate(amount, people, raiders4, b4, benchedRaiders, 3);
+  
+  // move raider and split onto array to print
+  for (var j = 0, pLength = people.length; j < pLength; j++) {
+    result.push([people[j], amount[j]]);
+  }
+  return result;
+}
+
+function calculate(result, people, raiders, boss, benched, bossNum) {
+  // variables
+  var buyer = "",
+      item = "",
+      split = 0,
+      itemCost = 0,
+      benchedRaiders = remSandD(benchedRaider(benched, bossNum)),
+      numBenched = numBenchedRaiders(benchedRaiders),
+      test = [];
+  
+  // go through all the items in the given section
+  for (var h = 0, bLength = boss.length; h < bLength; h++) {
+    // get the item, item cost, and buyer name
+    item = boss[h][0];
+    itemCost = boss[h][1];
+    buyer = boss[h][2];
+    
+    // if the item cost is not 0
+    if (itemCost !== 0) {
+      // if there is a buyer, no one benched, or the item isn't an entrance
+      if ((buyer !== "") || (numBenched < 1) ||
+        (item.toLowerCase() !== "entrance")){
+          split = itemCost / ((buyer !== "") ? (raiders.length - 1) : raiders.length);
+          // loop through the raiders and raid list
+          for (var i = 0, rLength = raiders.length; i < rLength; i++) {
+            var indexNum = people.indexOf(raiders[i]);
+            // if the raider isn't the buyer, give split
+            if (raiders[i].toLowerCase() !== buyer.toLowerCase()) {
+              // if it's an entrance fee split, split among all raiders 
+              result[indexNum] += split;
+            }
+          }
+          // otherwise
+        } else {
+          // loop through list of benched raiders and raid list
+          for (var k = 0, beLength = numBenched; k < beLength; k++) {
+            // find benched raider and split among the benched
+            var benchedNum = people.indexOf(benchedRaiders[k]);
+            result[benchedNum] += itemCost / numBenched;
+          }
+        }
+    }
+    
+  } 
+  
+  return result;
+}
+
+// function for determining the raiders benched
+function benchedRaider(benched, boss) {
+  var benchedRaiders = [];
+  // Since the benched are divided in columns/boss number, can use to determine
+  for (var i = 0, bLength = benched.length; i < bLength; i++) {
+    benchedRaiders.push(benched[i][boss]);
+  }
+  return benchedRaiders;
+}
+
+// determines if there are any non-blank entries in an array
+function anyBenchedRaiders(benched) {
+  for (var i = 0, bLength = benched.length; i < bLength; i++) {
+    if (benched[i] !== '') {
+      return true;
+    }
+  }
+  return false;
+}
+
+// counts the number of non-blank entries in an array
+function numBenchedRaiders(benched) {
+  var num = 0;
+  for (var i = 0, bLength = benched.length; i < bLength; i++) {
+    if (benched[i] !== '') {
+      num++;
+    }
+  }
+  return num;
+}
+
+// creates the list
+function makeRaidersList(column, inputList) {
+  var returnList = [];
+  for (var i = 0, iLength = inputList.length; i < iLength; i++) {
+    if ((inputList[i][column].toLowerCase().indexOf("buyer") === -1) && 
+        (inputList[i][column] !== "")){
+      returnList.push.apply(returnList, [inputList[i][column]]);
+    }
+  }
+  return remSandD(returnList);
+}
+
+// determines if there are any missing and adds to the list
+function addMissingRaiders(main, r1, r2, r3, r4) {
+  var returnList = main.slice();
+  var newList = [];
+  returnList.push.apply(returnList, difference(r1, main));
+  returnList.push.apply(returnList, difference(r2, returnList));
+  returnList.push.apply(returnList, difference(r3, returnList));
+  returnList.push.apply(returnList, difference(r4, returnList));
+  return returnList;
+}
+
+// determines if there are any differences between the two arrays
+function difference(a1, a2) {
+  var result = [];
+  for (var i = 0, aLength = a1.length; i < aLength; i++) {
+    if (a2.indexOf(a1[i]) === -1) {
+      result.push(a1[i]);
+    }
+  }
+  return result;
+}
+
+// function to remove space and duplicates
+function remSandD(list) {
+  var nList = [list[0].trim()];
+  var dup = false;
+  
+  // removes whites spaces before and after a word
+  for (var i = 0, lLength = list.length; i < lLength; i++) {
+    list[i] = list[i].trim();
+    for (var j = 0, jLength = nList.length; j < jLength; j++) {
+      if (list[i] === nList[j]) {
+        dup = true;
+      }
+    }
+    if (!dup) {
+      nList.push(list[i]);
+    }
+    dup = false;
+  }
+  
+  return nList;
+}
+
+// function for creating log
+function onEdit(e) {
+  // name of the page
+  var ssName = "Loot List";
+  var ss = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ssName);
+  if (e.source.getActiveSheet().getName() === ssName) {
+    var cell = ss.getRange("C44").getValue();
+    var cell2 = ss.getRange("C45").getValue();
+    var cell3 = ss.getRange("C46").getValue();
+    
+    if ((cell !== "") && (cell.toLowerCase() === "y")) {
+      ss.getRange("C44").setValue("N");
+      var oldRange = "F49:Y687";
+      var oldData = ss.getRange(oldRange).getValues();
+      var currentSplits = ss.getRange("G19:H35").getValues();
+      var randc = calculateFreeRandC(oldData);
+      var row = randc[0];
+      var col = randc[1];
+      oldData[row][col] = "Raid " + ss.getRange("G2").getValue();
+      var today = new Date();
+      oldData[row][col+1] = (today.getMonth() + 1) + "/" + today.getDate() + "/" + today.getYear();
+      for (var i = 0, cLength = currentSplits.length; i < cLength; i++) {
+        if (currentSplits[i][0] != "") {
+          oldData[i+row][col] = currentSplits[i][0];
+          oldData[i+row][col+1] = currentSplits[i][1].toFixed(2);
+        }
+      }                
+      ss.getRange(oldRange).setValues(oldData);
+    } else if ((cell2 !== "") && (cell2.toLowerCase() === "y")) {
+      ss.getRange("C45").setValue("N");
+      for (var i = 2; i < 42; i++) {
+        ss.getRange("C" + i).setValue(0);
+        ss.getRange("D" + i).setValue('');
+        if ((i % 10) == 0) {
+          i++;
+        }
+      }
+      for (var i = 20; i < 36; i++) {
+        ss.getRange("I" + i).setValue('');
+      }
+    } else if ((cell3 !== "") && (cell3.toLowerCase() === "y")) {
+      ss.getRange("C46").setValue("N");
+      var oldData = ss.getRange("G20:I35").getValues();
+      var currentList = ss.getRange("A49:B687").getValues();
+      var people = [],
+          gold = [];
+      
+      for (var o = 0, oLength = oldData.length; o < oLength; o++) {
+        if ((oldData[o][0] !== "") && (oldData[o][2] !== "x")) {
+          people.push(oldData[o][0]);
+          gold.push(oldData[o][1]);
+        }
+      }
+      
+      var startingCellNum = 49;
+      var foundPerson = false;      
+      var currentListSize = calculateSize(ss.getRange("A49:B687").getValues());
+      
+      for (var p = 0, pLength = people.length; p < pLength; p++) {
+        if (ss.getRange("A" + startingCellNum).getValue() === "") {
+          ss.getRange("A" + startingCellNum).setValue(people[p]);
+          ss.getRange("B" + startingCellNum).setValue(gold[p].toFixed(2));
+        } else {
+          currentListSize = calculateSize(ss.getRange("A49:B687").getValues());
+          for (var l = 0; l < currentListSize; l++) {
+            if (currentList[l][0] === people[p]) {
+              ss.getRange("B" + (startingCellNum + l)).setValue((ss.getRange("B" + (startingCellNum + l)).getValue() + gold[p]).toFixed(2));
+              foundPerson = true;
+            }
+          }
+          if (foundPerson === false) {
+            currentListSize = calculateSize(ss.getRange("A49:B687").getValues());
+            ss.getRange("A" + (startingCellNum + currentListSize)).setValue(people[p]);
+            ss.getRange("B" + (startingCellNum + currentListSize)).setValue(gold[p].toFixed(2));
+          }
+          foundPerson = false;
+        }
+        
+      }
+      
+    }
+       
+    
+  }
+    
+}
+
+function calculateSize(list) {
+  var size = 0;
+  for (var i = 0, iLength = list.length; i < iLength; i++) {
+    if (list[i][0] !== "") {
+      size++;
+    }
+  }
+  return size;
+}
+
+function biggerNum(size1, size2) {
+  if (size1 > size2) {
+    return size1;
+  }
+  return size2;
+}
+
+function calculateFreeRandC(range) {
+  for (var i = 0, rLength = range.length; i < rLength; i+=7) {
+    for (var j = 0, rLength2 = range[i].length - 3; j < rLength2; j+=3) {
+      if ((range[i][j] === "") && (range[i+1][j] === "")) {
+        if ((i !== 0) && (range[i-1][j] !== "")) {
+          return [i+1, j];
+        }
+        return [i, j];
+      }
+    }
+  }
+}
