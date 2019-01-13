@@ -25,30 +25,29 @@ public class Main {
         String[] grading_scale_letter = {"A", "B", "C", "D", "F"};
         Double[] grading_scale_number = {90.00, 80.00, 70.00, 60.00, 0.00};
 
+        // valid arrays
+        String[] valid_YN_answers = {"yes", "y", "no", "n"};
+        String[] valid_strings = {"a", "b", "c", "d", "f", "all", "some"};
+        String[] valid_letters_only = {"a", "b", "c", "d", "f"};
+
+
         // print grade scale for user to verify
         printGradeScale(grading_scale_letter, grading_scale_number);
 
         // check with user to see if the the grading scale is accurate
-        System.out.print("\nIs the scale accurate (y/n)? ");
-        scale_accuracy = reader.next();
+        scale_accuracy = printPrompt("\nIs the scale accurate (y/n)? ", valid_YN_answers);
 
         // if the user inputs "no" or "n'
         if (("n").equals(scale_accuracy.toLowerCase()) || ("no").equals(scale_accuracy.toLowerCase())) {
 
             // loops until the user enters an accepted string
-            do {
-                System.out.print("Which letter is incorrect (A, B, C, D, F, some, or all)? ");
-                incorrect_letter = reader.next();
-            } while (!checkValidStrings(incorrect_letter));
+            incorrect_letter = printPrompt("Which letter is incorrect (A, B, C, D, F, some, or all)? ", valid_strings);
 
             // if the string is "some"
             if (incorrect_letter.toLowerCase().equals("some")) {
 
                 // loop until the user gives us the accepted string
-                do {
-                    System.out.print("Which letters are incorrect (A, B, C, D, and F)? ");
-                    incorrect_letters = reader.next();
-                } while (!checkValidStrings(incorrect_letters));
+                incorrect_letters = printPrompt("Which letters are incorrect (A, B, C, D, and F)? ", valid_letters_only);
 
             // otherwise
             } else {
@@ -59,12 +58,13 @@ public class Main {
                     // loop until the user is satisfied with the grading scale
                     do {
                         for (int k = 0; k < grading_scale_letter.length; k++) {
-                            System.out.print("What is the correct lowest number for " + grading_scale_letter[k] + "? ");
                             grading_scale_number[k] = checkAndReturn(grading_scale_letter, grading_scale_number, grading_scale_letter[k]);
                         }
                         printGradeScale(grading_scale_letter, grading_scale_number);
-                        System.out.print("\nIs the scale accurate (y/n)? ");
-                        revised_scale_accuracy = reader.next();
+
+                        // loop until the user gives a correct y/n response
+                        revised_scale_accuracy = printPrompt("\nIs the scale accurate (y/n)? ", valid_YN_answers);
+
                     } while (!(revised_scale_accuracy.toLowerCase().equals("y") || revised_scale_accuracy.toLowerCase().equals("yes")));
 
                 // if the string is "A", "B", "C", "D", or "F"
@@ -72,12 +72,12 @@ public class Main {
 
                     // loop until the user is satisfied with the grading scale
                     do {
-                        System.out.print("What is the correct lowest number for " + incorrect_letter + "? ");
                         grading_scale_number[indexOf(grading_scale_letter, incorrect_letter.toUpperCase())] =
                                 checkAndReturn(grading_scale_letter, grading_scale_number, incorrect_letter);
                         printGradeScale(grading_scale_letter, grading_scale_number);
-                        System.out.print("\nIs the scale accurate (y/n)? ");
-                        revised_scale_accuracy = reader.next();
+
+                        // loop until the user gives a correct y/n response
+                        revised_scale_accuracy = printPrompt("\nIs the scale accurate (y/n)? ", valid_YN_answers);
                     } while (!(revised_scale_accuracy.toLowerCase().equals("y") || revised_scale_accuracy.toLowerCase().equals("yes")));
                 }
             }
@@ -119,12 +119,11 @@ public class Main {
     }
 
     // function to check valid strings
-    private static Boolean checkValidStrings(String inputtedString) {
-        String[] validInputs = {"a", "b", "c", "d", "f", "all", "some"};
+    private static Boolean checkValidStrings(String inputtedString, String[] validArray) {
 
         // loop through array of valid inputs and if it matches one of them, return true
-        for (int j = 0; j < validInputs.length; j++) {
-            if (inputtedString.toLowerCase().equals(validInputs[j])) {
+        for (int j = 0; j < validArray.length; j++) {
+            if (inputtedString.toLowerCase().equals(validArray[j])) {
                 return true;
             }
         }
@@ -148,16 +147,38 @@ public class Main {
     // continues to ask the user until a valid double is given
     private static double checkAndReturn(String[] letterArray, Double[] numberArray, String letter) {
         Scanner reader2 = new Scanner(System.in);
-        int previous_minimum_int = indexOf(letterArray, letter);
-        // if the letter is A, the max is 100
-        Double previous_minimum = (previous_minimum_int == 0) ? 100.00 : numberArray[previous_minimum_int - 1;
+        int current_int = indexOf(letterArray, letter);
+        // if the letter is A, there is no previous so it is 100
+        Double previous_minimum = (current_int == 0) ? 100.00 : numberArray[current_int - 1];
+        // if the letter is F, there is no next so it is 0
+        Double next_minimum = (current_int == 4) ? 0.00 : numberArray[current_int + 1];
         Double num_input;
 
         // loop until the user gives a valid number
         do {
             System.out.print("What is the correct lowest number for " + letter + "? ");
             num_input = reader2.nextDouble();
-        } while (num_input > previous_minimum);
+            if ((num_input > previous_minimum) || (num_input < next_minimum)) {
+                System.out.println("Not a valid number (either higher than the previous letter or lower than the next)");
+            }
+        } while ((num_input > previous_minimum) || (num_input < next_minimum));
+
+        reader2.close();
         return num_input;
+    }
+
+    private static String printPrompt(String printString, String[] array) {
+        Scanner reader3 = new Scanner(System.in);
+        String user_input;
+
+        // loop until the user gives a correct y/n response
+        do {
+            System.out.print(printString);
+            user_input = reader3.next();
+        } while (!checkValidStrings(user_input, array));
+
+        reader3.close();
+
+        return user_input;
     }
 }
