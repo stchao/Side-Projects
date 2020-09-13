@@ -8,7 +8,7 @@ set "count=0"
 Rem if the Images folder doesn't exist in the user's document folder, create it
 If Not Exist "%userDocuments%\Images" mkdir %userDocuments%\Images
 
-Rem go through all the files and if the files are greater than 350KB, copy them to the images folder
+Rem go through all the files and if the files are greater than 350KB, copy them to the Images folder
 Rem try 300KB
 for /r %userDirectory% %%F in (*.) do @if %%~zF geq 300000 copy "%%F" %userDocuments%\Images
 
