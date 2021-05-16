@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -15,6 +16,8 @@ namespace BasicWebScrapper
         private static string _bestBuyURL;
         private static DateTime startTime;
         private static DateTime endTime;
+        private static DateTime endExportTime;
+        private static ExcelUtility _excelUtility;
 
         // Private variables to hold computer possible information
         private static string[] _availableComputerBrands;
@@ -28,7 +31,27 @@ namespace BasicWebScrapper
             startTime = DateTime.Now;
             InitializeVariables();
             var test = GetComputersFromBestBuy();
+
+            List<Computer> tester = new List<Computer>()
+            {
+                new Computer
+                {
+                    Title = "",
+                    Brand = "",
+                    Model = "",
+                    CPU = "",
+                    GPU = "",
+                    RAM = "",
+                    Storage = "",
+                    ModelNumber = "",
+                    SKU = "",
+                    Cost = "",
+                    Link = "",
+                }
+            };
             endTime = DateTime.Now;
+            _excelUtility.exportToExcel(test);
+            endExportTime = DateTime.Now;
             Console.WriteLine(endTime - startTime);
             //Console.WriteLine("Hello World!");
         }
@@ -74,7 +97,7 @@ namespace BasicWebScrapper
                     if (computerInfoHtmlNodeList[i].ToList().Count > 0 && computerModelSkuHtmlNodeList[i].ToList().Count > 0 && computerPriceHtmlNodeList[i].ToList().Count > 0)
                     {
                         var computerBrandAndHardware = computerInfoHtmlNodeList[i].ToList()[0].InnerText;
-                        computers.Add(new Computer()
+                         computers.Add(new Computer()
                         {
                             // include title in case string parse goes funny
                             Title = computerBrandAndHardware,
@@ -84,17 +107,17 @@ namespace BasicWebScrapper
                             GPU = getComputerInformation(computerBrandAndHardware, _availableComputerGPU),
                             RAM = getComputerInformation(computerBrandAndHardware, _availableComputerRAM),
                             Storage = getComputerInformation(computerBrandAndHardware, _availableComputerStorage),
-                            ModelNumber = computerModelSkuHtmlNodeList[i].ToList()[0].InnerText,
-                            SKU = computerModelSkuHtmlNodeList[i].ToList()[1].InnerText,
-                            Cost = computerPriceHtmlNodeList[i].ToList()[1].InnerText,
-                            Link = computerInfoHtmlNodeList[i].ToList()[0].Attributes["href"].Value,
+                            ModelNumber = computerModelSkuHtmlNodeList[i].ToList().ElementAtOrDefault(0)?.InnerText ?? "N/A",
+                            SKU = computerModelSkuHtmlNodeList[i].ToList().ElementAtOrDefault(1)?.InnerText ?? "N/A",
+                            Cost = computerPriceHtmlNodeList[i].ToList().ElementAtOrDefault(1)?.InnerText ?? "N/A",
+                            Link = computerInfoHtmlNodeList[i].ToList().ElementAtOrDefault(0)?.Attributes["href"].Value,
                         });
                     }
                 }
 
                 // Increment page and assign the next loaded page to doc
                 currentPage++;
-                doc = web.Load("https://www.bestbuy.com/site/desktop-computers/all-desktops/pcmcat143400050013.c?cp=" + currentPage + "id=pcmcat143400050013");
+                doc = web.Load("https://www.bestbuy.com/site/desktop-computers/all-desktops/pcmcat143400050013.c?cp=" + currentPage + "&id=pcmcat143400050013");
             }
 
             return computers;
@@ -110,13 +133,40 @@ namespace BasicWebScrapper
             return "N/A";
         }
 
+        static DataTable createDataTable (List<Computer> computers)
+        {
+            DataTable table = new DataTable();
+            table.Columns.Add("Title", typeof(string));
+            table.Columns.Add("Brand", typeof(string));
+            table.Columns.Add("Model", typeof(string));
+            table.Columns.Add("Model Number", typeof(string));
+            table.Columns.Add("SKU", typeof(string));            
+            table.Columns.Add("CPU", typeof(string));
+            table.Columns.Add("GPU", typeof(string));
+            table.Columns.Add("RAM", typeof(string));
+            table.Columns.Add("Storage", typeof(string));
+            table.Columns.Add("Cost", typeof(string));
+            table.Columns.Add("Link", typeof(string));
+
+            foreach(Computer computer in computers)
+            {
+                table.Rows.Add(computer.Title, computer.Brand, computer.Model, computer.ModelNumber, 
+                               computer.SKU, computer.CPU, computer.GPU, computer.RAM, computer.Storage, 
+                               computer.Cost, computer.Link);
+            }
+
+            return table;
+        }
+
         // Method to initialize private variables
         static void InitializeVariables()
         {
+            _excelUtility = new ExcelUtility();
+
             _bestBuyURL = "https://www.bestbuy.com/site/desktop-computers/all-desktops/pcmcat143400050013.c?id=pcmcat143400050013";
 
             _availableComputerBrands = new string[] { "Acer", "Alienware", "Apple", "ASUS", "Azulle", "CanaKit", "CLX", "CORSAIR", "CyberPowerPC", 
-                "CybertronPC", "Dell", "HP", "HP OMEN", "iBUYPOWER", "Intel", "LenovoL", "Microsoft", "MSI", "OptiPlex", "Raspberry Pi", "Shuttle", 
+                "CybertronPC", "Dell", "HP", "HP OMEN", "iBUYPOWER", "Intel", "Lenovo", "Microsoft", "MSI", "OptiPlex", "Raspberry Pi", "Shuttle", 
                 "Skytech Gaming", "Thermaltake" };
             _availableComputerCPU = new string[] { "Intel Core i3", "Intel Core i5", "Intel Core i7", "Intel Core i9", "AMD Ryzen 3", "AMD Ryzen 5", 
                 "AMD Ryzen 7", "AMD Ryzen 9", "AMD Threadripper", "Not Applicable", "Intel Xeon", "Intel Celeron", "Apple M1", "Intel Pentium", 
