@@ -18,8 +18,10 @@ namespace BasicWebScrapper
         private static DateTime endTime;
         private static DateTime endExportTime;
         private static ExcelUtility _excelUtility;
+        private static ComputerSpecificationDictionary _computerSpecificationDictionary;
 
         // Private variables to hold computer possible information
+        private static Dictionary<string, string> _availableComputerSpecification;
         private static string[] _availableComputerBrands;
         private static string[] _availableComputerCPU;
         private static string[] _availableComputerGPU;
@@ -97,21 +99,12 @@ namespace BasicWebScrapper
                     if (computerInfoHtmlNodeList[i].ToList().Count > 0 && computerModelSkuHtmlNodeList[i].ToList().Count > 0 && computerPriceHtmlNodeList[i].ToList().Count > 0)
                     {
                         var computerBrandAndHardware = computerInfoHtmlNodeList[i].ToList()[0].InnerText;
-                         computers.Add(new Computer()
-                        {
-                            // include title in case string parse goes funny
-                            Title = computerBrandAndHardware,
-                            Brand = getComputerInformation(computerBrandAndHardware, _availableComputerBrands),
-                            Model = "",
-                            CPU = getComputerInformation(computerBrandAndHardware, _availableComputerCPU),
-                            GPU = getComputerInformation(computerBrandAndHardware, _availableComputerGPU),
-                            RAM = getComputerInformation(computerBrandAndHardware, _availableComputerRAM),
-                            Storage = getComputerInformation(computerBrandAndHardware, _availableComputerStorage),
-                            ModelNumber = computerModelSkuHtmlNodeList[i].ToList().ElementAtOrDefault(0)?.InnerText ?? "N/A",
-                            SKU = computerModelSkuHtmlNodeList[i].ToList().ElementAtOrDefault(1)?.InnerText ?? "N/A",
-                            Cost = computerPriceHtmlNodeList[i].ToList().ElementAtOrDefault(1)?.InnerText ?? "N/A",
-                            Link = computerInfoHtmlNodeList[i].ToList().ElementAtOrDefault(0)?.Attributes["href"].Value,
-                        });
+                        var computer = _computerSpecificationDictionary.CheckSpecifications(computerBrandAndHardware);
+                        computer.Model = computerModelSkuHtmlNodeList[i].ToList().ElementAtOrDefault(0)?.InnerText ?? "N/A";
+                        computer.SKU = computerModelSkuHtmlNodeList[i].ToList().ElementAtOrDefault(1)?.InnerText ?? "N/A";
+                        computer.Cost = computerPriceHtmlNodeList[i].ToList().ElementAtOrDefault(1)?.InnerText ?? "N/A";
+                        computer.Link = computerInfoHtmlNodeList[i].ToList().ElementAtOrDefault(0)?.Attributes["href"].Value;
+                        computers.Add(computer);
                     }
                 }
 
@@ -121,16 +114,6 @@ namespace BasicWebScrapper
             }
 
             return computers;
-        }
-
-        // Method to check if any items in the given array of strings is in the given string, and returns "N/A" if it can't be found
-        static string getComputerInformation(string stringToSearch, string[] listOfInfo)
-        {
-            for (int i = 0; i < listOfInfo.Length; i++)
-            {
-                if (stringToSearch.Contains(listOfInfo[i])) { return listOfInfo[i]; }
-            }
-            return "N/A";
         }
 
         static DataTable createDataTable (List<Computer> computers)
@@ -162,6 +145,7 @@ namespace BasicWebScrapper
         static void InitializeVariables()
         {
             _excelUtility = new ExcelUtility();
+            _computerSpecificationDictionary = new ComputerSpecificationDictionary();
 
             _bestBuyURL = "https://www.bestbuy.com/site/desktop-computers/all-desktops/pcmcat143400050013.c?id=pcmcat143400050013";
 
@@ -170,10 +154,18 @@ namespace BasicWebScrapper
                 "Skytech Gaming", "Thermaltake" };
             _availableComputerCPU = new string[] { "Intel Core i3", "Intel Core i5", "Intel Core i7", "Intel Core i9", "AMD Ryzen 3", "AMD Ryzen 5", 
                 "AMD Ryzen 7", "AMD Ryzen 9", "AMD Threadripper", "Not Applicable", "Intel Xeon", "Intel Celeron", "Apple M1", "Intel Pentium", 
-                "Intel Core 2 Duo", "AMD A-Series A4", "AMD A-Series A9", "AMD A-Series A6", "AMD Athlon Silver 3000 Series", "Intel Core2 Duo" };
-            _availableComputerGPU = new string[] { };
-            _availableComputerRAM = new string[] { "192GB", "128GB", "96GB", "64GB", "48GB", "32GB", "16GB", "12GB", "8GB", "6GB", "2GB", "512MB" };
-            _availableComputerStorage = new string[] { "64GB", "128GB", "256GB", "480GB", "512GB", "1TB", "2TB" };
+                "Intel Core 2 Duo", "AMD A-Series A4", "AMD A-Series A9", "AMD A-Series A6", "AMD Athlon Silver 3000 Series", "Intel Core2 Duo", 
+                "AMD A4", "AMD R5", "AMD Athlon", "AMD Ryzen" };
+            _availableComputerGPU = new string[] { "NVIDIA", "GeForce" };
+            _availableComputerRAM = new string[] { "192GB Memory", "128GB Memory", "96GB Memory", "64GB Memory", "48GB Memory", "32GB Memory",
+                "16GB Memory", "12GB Memory", "8GB Memory", "6GB Memory", "2GB Memory", "512MB Memory" };
+            _availableComputerStorage = new string[] { "64GB", "128GB", "240GB", "250GB", "256GB", "480GB", "500GB", "512GB", "960GB", "1TB", "2TB", "4TB" };
+
+            _computerSpecificationDictionary.AddArrayToDictionary(_availableComputerBrands, "brand");
+            _computerSpecificationDictionary.AddArrayToDictionary(_availableComputerCPU, "cpu");
+            _computerSpecificationDictionary.AddArrayToDictionary(_availableComputerGPU, "gpu");
+            _computerSpecificationDictionary.AddArrayToDictionary(_availableComputerRAM, "ram");
+            //_computerSpecificationDictionary.AddArrayToDictionary(_availableComputerStorage, "storage");
         }
 
         // Method to get app settings information
