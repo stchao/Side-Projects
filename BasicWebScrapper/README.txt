@@ -1,16 +1,21 @@
-Current Version 0.0.0
+Current Version 0.0.5
 
 Change Log:
+Version 0.0.5:
+- Added method to more accurately get all the computer specifications, removing the use of the dictionary except when determining brand
+- Added method to resolve file name conflicts when saving the Excel document
+- Average run time is (first: 7:39.8436998; second: 7:46.2590581)
+
 Version 0.0.4:
 - Added for loop method to more accurately get the storage from the anchor tag title
 - Resolved issue where storage and anchor tag titles were not exporting to the Excel document
-- Average run time is (first: 7:21.6681872)
+- Average run time is 7:21.6681872 (first: 7:21.6681872)
 
 Version 0.0.3:
 - Added dictionary to store all possible brands, cpu, gpu, ram, and storage
 - Added method, with a worst case run time of O(N^2), to parse anchor tag title to utilize dictionary
 - Ran into issue where storage and anchor tag title are not in the exported Excel document
-- Average run time is (first: 07:43.6123150)
+- Average run time is 07:43.6123150 (first: 07:43.6123150)
 
 Version 0.0.2:
 - Added method to export to Excel using the ClosedXML library

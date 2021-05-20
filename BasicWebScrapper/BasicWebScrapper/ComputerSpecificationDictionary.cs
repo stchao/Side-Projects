@@ -19,51 +19,69 @@ namespace BasicWebScrapper
 
         public Computer CheckSpecifications(string specificationString)
         {
-            string[] separatingStrings = { " - " };
+            string[] separatingStrings = { " - ",  " – ", "- ", ",", " -", "-,"};
             string[] computerSpecifications = specificationString.Split(separatingStrings, StringSplitOptions.RemoveEmptyEntries);
-            Computer computer = new Computer { Title = specificationString, Storage = CheckStorage(computerSpecifications) ?? "N/A" };
-
-            foreach (string specification in computerSpecifications)
+            
+            if (computerSpecifications.Length > 3)
             {
-                if (specificationDictionary.ContainsKey(specification.Trim().ToLower()))
+                Computer computer = new Computer
                 {
-                    string value = "";
-                    specificationDictionary.TryGetValue(specification.Trim().ToLower(), out value);
-                    switch (value)
-                    {
-                        case "brand":
-                            computer.Brand = specification.Trim();
-                            break;
-                        case "model":
-                            computer.Model = specification.Trim();
-                            break;
-                        case "cpu":
-                            computer.CPU = specification.Trim();
-                            break;
-                        case "ram":
-                            computer.RAM = specification.Trim();
-                            break;
-                        default:
-                            break;
-                    }
-                }
+                    Title = specificationString,
+                    Brand = CheckSpecification(computerSpecifications, "brand") ?? "N/A",
+                    Storage = CheckSpecification(computerSpecifications, "storage") ?? "N/A",
+                    CPU = CheckSpecification(computerSpecifications, "cpu") ?? "N/A",
+                    RAM = CheckSpecification(computerSpecifications, "ram") ?? "N/A",
+                    GPU = CheckSpecification(computerSpecifications, "gpu") ?? "N/A",
+                };
+                return computer;
             }
 
-            return computer;
+            return new Computer { Title = specificationString };
         }
 
-        public string CheckStorage(string[] specificationArray)
+        public string CheckSpecification(string[] specificationArray, string computerSpecificationType)
         {
             for (int i = 0; i < specificationArray.Length; i++)
             {
                 var singleSpecificationString = specificationArray[i].ToLower();
-                if ((singleSpecificationString.Contains("gb") || singleSpecificationString.Contains("tb")) && !singleSpecificationString.Contains("memory"))
+                switch (computerSpecificationType)
                 {
-                    return singleSpecificationString;
-                }
+                    case "brand":
+                        if (specificationDictionary.TryGetValue(singleSpecificationString.Trim().ToLower(), out _))
+                        {
+                            return specificationArray[i];
+                        }
+                        break;
+                    case "cpu":
+                        if ((singleSpecificationString.Contains("intel") || singleSpecificationString.Contains("apple m1")) || 
+                            (singleSpecificationString.Contains("amd") && (singleSpecificationString.Contains("ryzen") || singleSpecificationString.Contains("a4"))))
+                        {
+                            return specificationArray[i];
+                        }
+                        break;
+                    case "storage":
+                        if ((singleSpecificationString.Contains("gb") || singleSpecificationString.Contains("tb")) && 
+                            !singleSpecificationString.Contains("memory"))
+                        {
+                            return specificationArray[i];
+                        }
+                        break;
+                    case "ram":
+                        if ((singleSpecificationString.Contains("gb") || singleSpecificationString.Contains("tb")) && singleSpecificationString.Contains("memory"))
+                        {
+                            return specificationArray[i];
+                        }
+                        break;
+                    case "gpu":
+                        if ((singleSpecificationString.Contains("nvidia") || singleSpecificationString.Contains("amd")) && 
+                            !(singleSpecificationString.Contains("ryzen") || singleSpecificationString.Contains("A4") ||singleSpecificationString.Contains("athlon")))
+                        {
+                            return specificationArray[i];
+                        }
+                        break;
+                }                
             }
             return null;
         }
-
     }
 }

@@ -149,22 +149,22 @@ namespace BasicWebScrapper
 
             _bestBuyURL = "https://www.bestbuy.com/site/desktop-computers/all-desktops/pcmcat143400050013.c?id=pcmcat143400050013";
 
-            _availableComputerBrands = new string[] { "Acer", "Alienware", "Apple", "ASUS", "Azulle", "CanaKit", "CLX", "CORSAIR", "CyberPowerPC", 
-                "CybertronPC", "Dell", "HP", "HP OMEN", "iBUYPOWER", "Intel", "Lenovo", "Microsoft", "MSI", "OptiPlex", "Raspberry Pi", "Shuttle", 
+            _availableComputerBrands = new string[] { "Acer", "Alienware", "Apple", "ASUS", "Azulle", "CanaKit", "CLX", "CORSAIR", "CyberPowerPC",
+                "CybertronPC", "Dell", "HP", "HP OMEN", "iBUYPOWER", "Intel", "Lenovo", "Microsoft", "MSI", "OptiPlex", "Raspberry Pi", "Shuttle",
                 "Skytech Gaming", "Thermaltake" };
-            _availableComputerCPU = new string[] { "Intel Core i3", "Intel Core i5", "Intel Core i7", "Intel Core i9", "AMD Ryzen 3", "AMD Ryzen 5", 
-                "AMD Ryzen 7", "AMD Ryzen 9", "AMD Threadripper", "Not Applicable", "Intel Xeon", "Intel Celeron", "Apple M1", "Intel Pentium", 
-                "Intel Core 2 Duo", "AMD A-Series A4", "AMD A-Series A9", "AMD A-Series A6", "AMD Athlon Silver 3000 Series", "Intel Core2 Duo", 
-                "AMD A4", "AMD R5", "AMD Athlon", "AMD Ryzen" };
-            _availableComputerGPU = new string[] { "NVIDIA", "GeForce" };
-            _availableComputerRAM = new string[] { "192GB Memory", "128GB Memory", "96GB Memory", "64GB Memory", "48GB Memory", "32GB Memory",
-                "16GB Memory", "12GB Memory", "8GB Memory", "6GB Memory", "2GB Memory", "512MB Memory" };
-            _availableComputerStorage = new string[] { "64GB", "128GB", "240GB", "250GB", "256GB", "480GB", "500GB", "512GB", "960GB", "1TB", "2TB", "4TB" };
+            //_availableComputerCPU = new string[] { "Intel Core i3", "Intel Core i5", "Intel Core i7", "Intel Core i9", "AMD Ryzen 3", "AMD Ryzen 5", 
+            //    "AMD Ryzen 7", "AMD Ryzen 9", "AMD Threadripper", "Not Applicable", "Intel Xeon", "Intel Celeron", "Apple M1", "Intel Pentium", 
+            //    "Intel Core 2 Duo", "AMD A-Series A4", "AMD A-Series A9", "AMD A-Series A6", "AMD Athlon Silver 3000 Series", "Intel Core2 Duo", 
+            //    "AMD A4", "AMD R5", "AMD Athlon", "AMD Ryzen" };
+            //_availableComputerGPU = new string[] { "NVIDIA", "GeForce" };
+            //_availableComputerRAM = new string[] { "192GB Memory", "128GB Memory", "96GB Memory", "64GB Memory", "48GB Memory", "32GB Memory",
+            //    "16GB Memory", "12GB Memory", "8GB Memory", "6GB Memory", "2GB Memory", "512MB Memory" };
+            //_availableComputerStorage = new string[] { "64GB", "128GB", "240GB", "250GB", "256GB", "480GB", "500GB", "512GB", "960GB", "1TB", "2TB", "4TB" };
 
             _computerSpecificationDictionary.AddArrayToDictionary(_availableComputerBrands, "brand");
-            _computerSpecificationDictionary.AddArrayToDictionary(_availableComputerCPU, "cpu");
-            _computerSpecificationDictionary.AddArrayToDictionary(_availableComputerGPU, "gpu");
-            _computerSpecificationDictionary.AddArrayToDictionary(_availableComputerRAM, "ram");
+            //_computerSpecificationDictionary.AddArrayToDictionary(_availableComputerCPU, "cpu");
+            //_computerSpecificationDictionary.AddArrayToDictionary(_availableComputerGPU, "gpu");
+            //_computerSpecificationDictionary.AddArrayToDictionary(_availableComputerRAM, "ram");
             //_computerSpecificationDictionary.AddArrayToDictionary(_availableComputerStorage, "storage");
         }
 
