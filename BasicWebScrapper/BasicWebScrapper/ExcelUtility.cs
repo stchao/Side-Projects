@@ -41,7 +41,7 @@ namespace BasicWebScrapper
                     worksheet.Cell(i + 2, 8).Value = computers[i].RAM ?? "N/A";
                     worksheet.Cell(i + 2, 9).Value = computers[i].Storage ?? "N/A";
                     worksheet.Cell(i + 2, 10).Value = computers[i].Cost ?? "N/A";
-                    worksheet.Cell(i + 2, 11).Value = (computers[i].Link == null ? "N/A" : "https://www.bestbuy.com/" + computers[i].Link);
+                    worksheet.Cell(i + 2, 11).Value = (computers[i].Link == null ? "N/A" : "https://www.bestbuy.com" + computers[i].Link);
                 }
 
                 worksheet.Columns().AdjustToContents();

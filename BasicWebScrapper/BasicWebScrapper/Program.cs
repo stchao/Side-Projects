@@ -7,6 +7,7 @@ using System.Data;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace BasicWebScrapper
@@ -21,41 +22,21 @@ namespace BasicWebScrapper
         private static ComputerSpecificationDictionary _computerSpecificationDictionary;
 
         // Private variables to hold computer possible information
-        private static Dictionary<string, string> _availableComputerSpecification;
         private static string[] _availableComputerBrands;
-        private static string[] _availableComputerCPU;
-        private static string[] _availableComputerGPU;
-        private static string[] _availableComputerRAM;
-        private static string[] _availableComputerStorage;
 
         static void Main(string[] args)
         {
             startTime = DateTime.Now;
             InitializeVariables();
-            var test = GetComputersFromBestBuy();
 
-            List<Computer> tester = new List<Computer>()
-            {
-                new Computer
-                {
-                    Title = "",
-                    Brand = "",
-                    Model = "",
-                    CPU = "",
-                    GPU = "",
-                    RAM = "",
-                    Storage = "",
-                    ModelNumber = "",
-                    SKU = "",
-                    Cost = "",
-                    Link = "",
-                }
-            };
+            // For testing
+            //_computerSpecificationDictionary.CheckSpecifications("CyberPowerPC Gamer Xtreme Gaming Desktop- Intel Core i7-10700K -16G RAM- GeForce GTX 1650 S- 1T HDD+ 500G SSD- Black");
+
+            var computers = GetComputersFromBestBuy();
             endTime = DateTime.Now;
-            _excelUtility.exportToExcel(test);
+            _excelUtility.exportToExcel(computers);
             endExportTime = DateTime.Now;
             Console.WriteLine(endTime - startTime);
-            //Console.WriteLine("Hello World!");
         }
 
         // Method that takes no parameters and scrapes best buy desktop computers
@@ -100,6 +81,7 @@ namespace BasicWebScrapper
                     {
                         var computerBrandAndHardware = computerInfoHtmlNodeList[i].ToList()[0].InnerText;
                         var computer = _computerSpecificationDictionary.CheckSpecifications(computerBrandAndHardware);
+                        computer.Title = computerBrandAndHardware;
                         computer.Model = computerModelSkuHtmlNodeList[i].ToList().ElementAtOrDefault(0)?.InnerText ?? "N/A";
                         computer.SKU = computerModelSkuHtmlNodeList[i].ToList().ElementAtOrDefault(1)?.InnerText ?? "N/A";
                         computer.Cost = computerPriceHtmlNodeList[i].ToList().ElementAtOrDefault(1)?.InnerText ?? "N/A";
@@ -157,9 +139,6 @@ namespace BasicWebScrapper
             //    "Intel Core 2 Duo", "AMD A-Series A4", "AMD A-Series A9", "AMD A-Series A6", "AMD Athlon Silver 3000 Series", "Intel Core2 Duo", 
             //    "AMD A4", "AMD R5", "AMD Athlon", "AMD Ryzen" };
             //_availableComputerGPU = new string[] { "NVIDIA", "GeForce" };
-            //_availableComputerRAM = new string[] { "192GB Memory", "128GB Memory", "96GB Memory", "64GB Memory", "48GB Memory", "32GB Memory",
-            //    "16GB Memory", "12GB Memory", "8GB Memory", "6GB Memory", "2GB Memory", "512MB Memory" };
-            //_availableComputerStorage = new string[] { "64GB", "128GB", "240GB", "250GB", "256GB", "480GB", "500GB", "512GB", "960GB", "1TB", "2TB", "4TB" };
 
             _computerSpecificationDictionary.AddArrayToDictionary(_availableComputerBrands, "brand");
             //_computerSpecificationDictionary.AddArrayToDictionary(_availableComputerCPU, "cpu");
