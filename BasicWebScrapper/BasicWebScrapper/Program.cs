@@ -19,10 +19,7 @@ namespace BasicWebScrapper
         private static DateTime endTime;
         private static DateTime endExportTime;
         private static ExcelUtility _excelUtility;
-        private static ComputerSpecificationDictionary _computerSpecificationDictionary;
-
-        // Private variables to hold computer possible information
-        private static string[] _availableComputerBrands;
+        private static ExtractSpecification _extractSpecification;
 
         static void Main(string[] args)
         {
@@ -30,7 +27,7 @@ namespace BasicWebScrapper
             InitializeVariables();
 
             // For testing
-            //_computerSpecificationDictionary.CheckSpecifications("CyberPowerPC Gamer Xtreme Gaming Desktop- Intel Core i7-10700K -16G RAM- GeForce GTX 1650 S- 1T HDD+ 500G SSD- Black");
+            //_computerSpecificationDictionary.CheckSpecifications("Intel - NUC 9 Pro NUC9VXQNX Workstation - Xeon E-2286M  UHD Graphics P630 Mini PC - Black");
 
             var computers = GetComputersFromBestBuy();
             endTime = DateTime.Now;
@@ -71,7 +68,7 @@ namespace BasicWebScrapper
                 var computerModelSkuHtmlNodeList = rightColumnClassHtmlNodes.Select(node => node.Descendants("span").Where(node => node.GetAttributeValue("class", "").Equals("sku-value"))).ToList();
 
                 // Html node list that contains the prices
-                var computerPriceHtmlNodeList = rightColumnClassHtmlNodes.Select(node => node.Descendants("span").Where(node => node.GetAttributeValue("aria-hidden", "").Equals("true"))).ToList();
+                var computerPriceHtmlNodeList = rightColumnClassHtmlNodes.Select(node => node.Descendants("span").Where(node => node.GetAttributeValue("aria-hidden", "").Equals("true"))).ToList();         
 
                 // Go through each of the node lists
                 for (int i = 0; i < computerInfoHtmlNodeList.Count; i++)
@@ -79,13 +76,18 @@ namespace BasicWebScrapper
                     // Only try to create a computer object and add it to the list of the node lists aren't empty
                     if (computerInfoHtmlNodeList[i].ToList().Count > 0 && computerModelSkuHtmlNodeList[i].ToList().Count > 0 && computerPriceHtmlNodeList[i].ToList().Count > 0)
                     {
+                        var elementIndex = 0;
                         var computerBrandAndHardware = computerInfoHtmlNodeList[i].ToList()[0].InnerText;
-                        var computer = _computerSpecificationDictionary.CheckSpecifications(computerBrandAndHardware);
-                        computer.Title = computerBrandAndHardware;
+                        if (computerBrandAndHardware == "")
+                        {
+                            elementIndex = 1;
+                            computerBrandAndHardware = computerInfoHtmlNodeList[i].ToList()[1].InnerText;
+                        }
+                        var computer = _extractSpecification.ExtractFromString(computerBrandAndHardware);
                         computer.Model = computerModelSkuHtmlNodeList[i].ToList().ElementAtOrDefault(0)?.InnerText ?? "N/A";
                         computer.SKU = computerModelSkuHtmlNodeList[i].ToList().ElementAtOrDefault(1)?.InnerText ?? "N/A";
                         computer.Cost = computerPriceHtmlNodeList[i].ToList().ElementAtOrDefault(1)?.InnerText ?? "N/A";
-                        computer.Link = computerInfoHtmlNodeList[i].ToList().ElementAtOrDefault(0)?.Attributes["href"].Value;
+                        computer.Link = computerInfoHtmlNodeList[i].ToList().ElementAtOrDefault(elementIndex)?.Attributes["href"].Value;
                         computers.Add(computer);
                     }
                 }
@@ -98,53 +100,13 @@ namespace BasicWebScrapper
             return computers;
         }
 
-        static DataTable createDataTable (List<Computer> computers)
-        {
-            DataTable table = new DataTable();
-            table.Columns.Add("Title", typeof(string));
-            table.Columns.Add("Brand", typeof(string));
-            table.Columns.Add("Model", typeof(string));
-            table.Columns.Add("Model Number", typeof(string));
-            table.Columns.Add("SKU", typeof(string));            
-            table.Columns.Add("CPU", typeof(string));
-            table.Columns.Add("GPU", typeof(string));
-            table.Columns.Add("RAM", typeof(string));
-            table.Columns.Add("Storage", typeof(string));
-            table.Columns.Add("Cost", typeof(string));
-            table.Columns.Add("Link", typeof(string));
-
-            foreach(Computer computer in computers)
-            {
-                table.Rows.Add(computer.Title, computer.Brand, computer.Model, computer.ModelNumber, 
-                               computer.SKU, computer.CPU, computer.GPU, computer.RAM, computer.Storage, 
-                               computer.Cost, computer.Link);
-            }
-
-            return table;
-        }
-
         // Method to initialize private variables
         static void InitializeVariables()
         {
             _excelUtility = new ExcelUtility();
-            _computerSpecificationDictionary = new ComputerSpecificationDictionary();
+            _extractSpecification = new ExtractSpecification();
 
             _bestBuyURL = "https://www.bestbuy.com/site/desktop-computers/all-desktops/pcmcat143400050013.c?id=pcmcat143400050013";
-
-            _availableComputerBrands = new string[] { "Acer", "Alienware", "Apple", "ASUS", "Azulle", "CanaKit", "CLX", "CORSAIR", "CyberPowerPC",
-                "CybertronPC", "Dell", "HP", "HP OMEN", "iBUYPOWER", "Intel", "Lenovo", "Microsoft", "MSI", "OptiPlex", "Raspberry Pi", "Shuttle",
-                "Skytech Gaming", "Thermaltake" };
-            //_availableComputerCPU = new string[] { "Intel Core i3", "Intel Core i5", "Intel Core i7", "Intel Core i9", "AMD Ryzen 3", "AMD Ryzen 5", 
-            //    "AMD Ryzen 7", "AMD Ryzen 9", "AMD Threadripper", "Not Applicable", "Intel Xeon", "Intel Celeron", "Apple M1", "Intel Pentium", 
-            //    "Intel Core 2 Duo", "AMD A-Series A4", "AMD A-Series A9", "AMD A-Series A6", "AMD Athlon Silver 3000 Series", "Intel Core2 Duo", 
-            //    "AMD A4", "AMD R5", "AMD Athlon", "AMD Ryzen" };
-            //_availableComputerGPU = new string[] { "NVIDIA", "GeForce" };
-
-            _computerSpecificationDictionary.AddArrayToDictionary(_availableComputerBrands, "brand");
-            //_computerSpecificationDictionary.AddArrayToDictionary(_availableComputerCPU, "cpu");
-            //_computerSpecificationDictionary.AddArrayToDictionary(_availableComputerGPU, "gpu");
-            //_computerSpecificationDictionary.AddArrayToDictionary(_availableComputerRAM, "ram");
-            //_computerSpecificationDictionary.AddArrayToDictionary(_availableComputerStorage, "storage");
         }
 
         // Method to get app settings information

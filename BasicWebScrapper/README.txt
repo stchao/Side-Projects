@@ -1,11 +1,17 @@
-Current Version 0.0.7
+Current Version 0.0.8
 
 Change Log:
-0.0.7
+Version 0.0.8:
+- Modified the regex in loop method (#5) to include the common edge cases for the occasional typos in the anchor strings that contained the computer information. Added regexes to help extract uncommon edge cases and remove all forms of puncuations and whitespace characters. This reduced overall errors and the methods were able to capture most, if not, all of the information with very few errors.
+- Removed dictionary and utilized for loop and string.contains to extract computer brand
+- Updated class names, organized the methods to improved readibility, and added comments
+- Average run time is 7:44.6867288 (first: 7:44.8881705; second: 7:41.5488792; third: 07:47.6231368)
+
+Version 0.0.7:
 - Removed previous for loop method (#4)
 - Added an inner for loop method (#5) that is similar to the previous for loop method (#4) but regex is used instead to extract the information and get the indexes except the brand, which is obtained by seeing if the key exists in the dictionary in a constructed array formed by splitting the anchor string that contained the computer information by multiple strings of punctuation. This seemed to more accurately obtain the information with less instances of overlap, but still similar issues with overlap that could be resolved by removing punctuation. Computer model is still not included.
 - Run time of the for loop: O(6N or N) where N is running regex expression against the string or looping through an array to get the brand
-- Average run time is 7:46.1333415 (first: 7:54.1035223; second: 7:33.7483879; third: 7:50.5481144)
+- Average run time is 7:50.9777583 (first: 7:54.1035223; second: 7:50.5481144; third: 7:48.2816382)
 
 Version 0.0.6:
 - Removed previous for loop method (#3)
