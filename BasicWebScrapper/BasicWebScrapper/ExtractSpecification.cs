@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Linq;
 using System.Text.RegularExpressions;
 
 namespace BasicWebScrapper
@@ -10,8 +7,8 @@ namespace BasicWebScrapper
     {
         // private string array that contains all available brands
         private readonly string[] _availableComputerBrands = new string[] { "Acer", "Alienware", "Apple", "ASUS", "Azulle", "CanaKit", "CLX", "CORSAIR", "CyberPowerPC",
-                "CybertronPC", "Dell", "HP", "HP OMEN", "iBUYPOWER", "Intel", "Lenovo", "Microsoft", "MSI", "OptiPlex", "Raspberry Pi", "Shuttle",
-                "Skytech Gaming", "Thermaltake" };
+                "CybertronPC", "Dell", "HP", "HP OMEN", "iBUYPOWER", "Lenovo", "Microsoft", "MSI", "OptiPlex", "Raspberry Pi", "Shuttle",
+                "Skytech Gaming", "Thermaltake", "Intel" };
 
         // private regex variables for extracting specifications
         private readonly Regex _ramRegex = new Regex(@"\d{1,3} ?GB(?! [ESAN]).*?(?:memory|ram)|\d{1,4}MHz.*?(?:memory|ram)|\d{1,3} ?(?:G|M)B?.(?:memory|ram|ddr4)", RegexOptions.IgnoreCase);
@@ -19,7 +16,7 @@ namespace BasicWebScrapper
         private readonly Regex _storageRegex = new Regex(@"\d{1,4} ?(?:G?|T)B? ?(?:SATA.*)?(?:Flash.*Storage|S{2,3}D|HDD?|(?:Solid.*State|Hard|Fusion).*Drive|.?EMMC)|\d{1,3} ?(?:G|T)B? ?(?:M.2|NVMe.*?|Gen4)(?:.*SSD|HDD|.NVME)?", RegexOptions.IgnoreCase);
         private readonly Regex _storageEdgeCaseRegex = new Regex(@"\d{1,3} ?TB[+]\d{1,3}GB|\d{1,3}GB.(\d{1,3}GB)", RegexOptions.IgnoreCase);
         private readonly Regex _cpuRegex = new Regex(@"(intel|apple m1|amd|(?:core)?.?i\d[^\d])(?! Radeon| Gaming|.*NUC|.HD)|xeon", RegexOptions.IgnoreCase);
-        private readonly Regex _gpuRegex = new Regex(@"nvidia|amd(?! ?Ryzen(?:™)? | ?[ATW]| ?Gaming| ?GX)|rx|geforce|(?:r|g)tx|(?:intel )?U*HD [^ATW]", RegexOptions.IgnoreCase);
+        private readonly Regex _gpuRegex = new Regex(@"nvidia|amd(?! ?Ryzen(?:™)? | ?[ATWR]| ?Gaming| ?GX)|radeon|rx|geforce|(?:r|g)tx|(?:intel )?U*HD [^ATW]|intel iris", RegexOptions.IgnoreCase);
         private readonly Regex _specificationRegex = new Regex(@"\p{P}|\p{Zs}");
         private readonly Regex _specificationMultipleSpacesRegex = new Regex(@"\p{Zs}{2,}");
 
@@ -27,7 +24,7 @@ namespace BasicWebScrapper
         public Computer ExtractFromString(string specificationString)
         {
             // Replace all double spaces with single space, '&quot;' with ", and 'Mini' with '- Mini' (for some edge cases when extracting substrings)
-            specificationString = _specificationMultipleSpacesRegex.Replace(specificationString.Replace("&quot;", "\"").Replace("Mini", "- Mini"), " ");
+            specificationString = _specificationMultipleSpacesRegex.Replace(specificationString.Replace("Mini", "- Mini"), " ");
 
             // Check if the standard regex is able to extract the respective specification string, otherwise use edge case regex to extract 
             var ramMatch = UpdateMatch(_ramRegex, _ramEdgeCaseRegex, specificationString);
@@ -67,7 +64,7 @@ namespace BasicWebScrapper
             for (var i = 0; i < _availableComputerBrands.Length; i++)
             {
                 var currentComputerSpec = _availableComputerBrands[i].ToLower();
-                if (specificationString.Contains(currentComputerSpec))
+                if (specificationString.ToLower().Contains(currentComputerSpec))
                 {
                     computer.Brand = _availableComputerBrands[i];
                     break;

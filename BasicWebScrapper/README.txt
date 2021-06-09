@@ -1,6 +1,19 @@
-Current Version 0.0.8
+Current Version 1.0.1
 
 Change Log:
+Version 1.0.1:
+- Added log classes to capture error log data and modified methods to capture any errors
+- Added availability as another property of computers to show if the computer is available: new or refurbished, out of stock, open box, or in-store only
+- Modified methods to allow sheets to be added and then separately exported, rather than creating only one sheet and then exporting it to Excel immediately
+- Average run time is (first: 0:22.5809934; second: 0:23.8027618; third: 0:22.0314856)
+
+Version 1.0.0:
+- Removed while loop with XPath expressions to get the last page number and the nodes/tags that contain the computer specification information
+- Added IHttpClientFactory and utilized named clients and async methods to get the computer specification information from every single page of the desktop computer category and to handle getting the last page number
+- Added Regex to extract the computer specification information indexes from the pages and the substring method to extract the strings 
+- Run time of the async methods: O(2N or N) where N is the number of pages
+- Average run time is 0:25.0142251 (first: 0:25.0142251)
+
 Version 0.0.8:
 - Modified the regex in loop method (#5) to include the common edge cases for the occasional typos in the anchor strings that contained the computer information. Added regexes to help extract uncommon edge cases and remove all forms of puncuations and whitespace characters. This reduced overall errors and the methods were able to capture most, if not, all of the information with very few errors.
 - Removed dictionary and utilized for loop and string.contains to extract computer brand
