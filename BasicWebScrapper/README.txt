@@ -2,7 +2,8 @@ Current Version 1.0.2
 
 Change Log:
 Version 1.0.2:
-- Added methods to handle creating a logs Excel document or modifying it if it has already been created
+- Added methods to handle creating an Excel document for logs, or adding to the Excel document if there already is one
+- Modified helper methods that check if a file exists or returns an available file name to take different file type extensions
 - Average run time is (first: 0:23.2005635; second: 0:22.2797148)
 
 Version 1.0.1:
