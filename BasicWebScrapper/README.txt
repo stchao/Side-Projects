@@ -1,11 +1,15 @@
-Current Version 1.0.1
+Current Version 1.0.2
 
 Change Log:
+Version 1.0.2:
+- Added methods to handle creating a logs Excel document or modifying it if it has already been created
+- Average run time is (first: 0:23.2005635; second: 0:22.2797148)
+
 Version 1.0.1:
 - Added log classes to capture error log data and modified methods to capture any errors
 - Added availability as another property of computers to show if the computer is available: new or refurbished, out of stock, open box, or in-store only
 - Modified methods to allow sheets to be added and then separately exported, rather than creating only one sheet and then exporting it to Excel immediately
-- Average run time is (first: 0:22.5809934; second: 0:23.8027618; third: 0:22.0314856)
+- Average run time is 0:22.8050803 (first: 0:22.5809934; second: 0:23.8027618; third: 0:22.0314856)
 
 Version 1.0.0:
 - Removed while loop with XPath expressions to get the last page number and the nodes/tags that contain the computer specification information

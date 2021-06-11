@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Http;
@@ -18,6 +19,7 @@ namespace BasicWebScrapper
         private static ExcelUtility _excelUtility;
         private static ExtractSpecification _extractSpecification;
         private static BestBuyComputers _bestBuyComputers;
+        private static List<LogMessage> _errors;
 
         static async Task Main(string[] args)
         {
@@ -27,6 +29,11 @@ namespace BasicWebScrapper
             InitializeVariables();
 
             // For testing
+            //LogMessage log = new LogMessage { LogDate = DateTime.Now, Message = "testing" };
+            //List<LogMessage> logs = new List<LogMessage>() { log, log, log };
+            //_excelUtility.AddLogsToWorkbook("Logs", logs);
+            //_excelUtility.AddLogsToWorkbook("Errors", logs);
+            //_excelUtility.ExportWorkbooksToExcel();
             //HelperMethods helperMethods = new HelperMethods();
             //var test = helperMethods.DoesFileExist("ComputerList");
             //var test2 = helperMethods.CheckAndGetFileName("ComputerList");
@@ -37,6 +44,12 @@ namespace BasicWebScrapper
 
             endTime = DateTime.Now;
             _excelUtility.AddComputersToWorkbook("BestBuy - Desktops", _bestBuyURL, computers);
+            _excelUtility.AddLogsToWorkbook("Logs", new List<LogMessage>());
+
+            _errors.AddRange(_bestBuyComputers.Errors);
+            _errors.AddRange(_excelUtility.Errors);
+
+            _excelUtility.AddLogsToWorkbook("Errors", _errors);
             _excelUtility.ExportWorkbooksToExcel();
             endExportTime = DateTime.Now;
             Console.WriteLine($"Get Computers: {endTime - startTime}\nExport: {endExportTime - endTime}");
@@ -66,6 +79,7 @@ namespace BasicWebScrapper
 
             _httpClientFactory = serviceProvider.GetService<IHttpClientFactory>();
 
+            _errors = new List<LogMessage>();
             _excelUtility = new ExcelUtility();
             _extractSpecification = new ExtractSpecification();
             _bestBuyComputers = new BestBuyComputers(_httpClientFactory);

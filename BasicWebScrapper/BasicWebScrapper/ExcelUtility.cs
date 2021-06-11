@@ -12,6 +12,9 @@ namespace BasicWebScrapper
         private XLWorkbook _xlLogsWorkbook = new XLWorkbook();
         private List<LogMessage> _errors = new List<LogMessage>();
 
+        private string _logFileName = "BasicWebScrapperLogs";
+        private string _excelFileTypeExtension = ".xlsx";
+
         public List<LogMessage> Errors { get { return _errors; } }
 
         public bool AddComputersToWorkbook(string worksheetName, string domainString, List<Computer> computers)
@@ -63,29 +66,69 @@ namespace BasicWebScrapper
             }
             return false;            
         }
-
+                
         public bool AddLogsToWorkbook(string worksheetName, List<LogMessage> logs)
         {
+            var logFileName = _helperMethods.GetAvailableFileName(_logFileName, _excelFileTypeExtension);
+
             try
             {
-                var worksheet = _xlLogsWorkbook.Worksheets.Add(worksheetName);
-
-                // Adding column names
-                worksheet.Cell(1, 1).Value = "LogDate";
-                worksheet.Cell(1, 2).Value = "Method";
-                worksheet.Cell(1, 3).Value = "Parameters";
-                worksheet.Cell(1, 4).Value = "Message";
-
-                for (int i = 0; i < logs.Count; i++)
+                // If the file already exists
+                if (logFileName == "BasicWebScrapperLogs.xlsx")
                 {
-                    worksheet.Cell(i + 2, 1).Value = logs[i].LogDate;
-                    worksheet.Cell(i + 2, 2).Value = logs[i].Method ?? "N/A";
-                    worksheet.Cell(i + 2, 3).Value = logs[i].Parameters ?? "N/A";
-                    worksheet.Cell(i + 2, 4).Value = logs[i].Message ?? "N/A";
-                }
+                    // Get the path and assign the global workbook variable to the file found
+                    var filePath = _helperMethods.CreateCurrentDirectoryPath(_logFileName);
+                    _xlLogsWorkbook = new XLWorkbook(filePath);
 
-                worksheet.Columns().AdjustToContents();
-                return true;
+                    // Open the worksheet based on the given parameter and find the next empty row
+                    var logsWorksheet = _xlLogsWorkbook.Worksheet(worksheetName);
+                    var emptyRowNumber = GetEmptyRowNumber(logsWorksheet);
+
+                    // If the workbook name is "Logs", use the AddLogs method. Otherwise, use the AddErrors method
+                    if (worksheetName == "Logs")
+                    {
+                        // Adding log information rows
+                        logsWorksheet = AddLogs(logsWorksheet, logs, emptyRowNumber);                        
+                        return true;
+                    }
+                    else
+                    {
+                        // Adding error information rows
+                        logsWorksheet = AddErrorLogs(logsWorksheet, logs, emptyRowNumber);                        
+                        return true;
+                    }
+                }
+                // If the file doesn't exist
+                else
+                {
+                    // Add new worksheets with the desired name
+                    var logsWorksheet = _xlLogsWorkbook.Worksheets.Add(worksheetName);
+
+                    if (worksheetName == "Logs")
+                    {
+                        // Adding column names
+                        logsWorksheet.Cell(1, 1).Value = "LogNumber";
+                        logsWorksheet.Cell(1, 2).Value = "LogDate";
+                        logsWorksheet.Cell(1, 3).Value = "Message";
+
+                        // Adding log information rows
+                        logsWorksheet = AddLogs(logsWorksheet, logs, 2);
+                    } 
+                    else
+                    {
+                        // Adding column names
+                        logsWorksheet.Cell(1, 1).Value = "LogNumber";
+                        logsWorksheet.Cell(1, 2).Value = "LogDate";
+                        logsWorksheet.Cell(1, 3).Value = "Method";
+                        logsWorksheet.Cell(1, 4).Value = "Parameters";
+                        logsWorksheet.Cell(1, 5).Value = "Message";
+
+                        // Adding error information rows
+                        logsWorksheet = AddErrorLogs(logsWorksheet, logs, 2);
+                    }                  
+
+                    return true;
+                }
             }
             catch (Exception e)
             {
@@ -96,10 +139,48 @@ namespace BasicWebScrapper
 
         public void ExportWorkbooksToExcel()
         {
-            _xlComputersWorkbook.SaveAs($"{Directory.GetCurrentDirectory()}\\{_helperMethods.CheckAndGetFileName("ComputerList")}");
-            //_xlLogsWorkbook.SaveAs($"{Directory.GetCurrentDirectory()}\\{_helperMethods.CheckAndGetFileName("BasicWebScrapperLogs")}");
+            _xlComputersWorkbook.SaveAs($"{Directory.GetCurrentDirectory()}\\{_helperMethods.GetAvailableFileName("ComputerList", _excelFileTypeExtension)}");
+            _xlLogsWorkbook.SaveAs($"{Directory.GetCurrentDirectory()}\\{_logFileName}{_excelFileTypeExtension}");
             _xlComputersWorkbook.Dispose();
             _xlLogsWorkbook.Dispose();
+        }
+
+        private int GetEmptyRowNumber(IXLWorksheet xLWorksheet)
+        {
+            int i = 1;
+            while (!xLWorksheet.Row(i).IsEmpty())
+            {
+                i++;
+            }
+            return i;
+        }
+
+        private IXLWorksheet AddLogs(IXLWorksheet logsWorksheet, List<LogMessage> logs, int emptyRowNumber)
+        {
+            for (int i = 0; i < logs.Count; i++)
+            {
+                logsWorksheet.Cell(i + emptyRowNumber, 1).Value = i + emptyRowNumber - 1;
+                logsWorksheet.Cell(i + emptyRowNumber, 2).Value = logs[i].LogDate;
+                logsWorksheet.Cell(i + emptyRowNumber, 3).Value = logs[i].Message ?? "N/A";
+            }
+
+            logsWorksheet.Columns().AdjustToContents();
+            return logsWorksheet;
+        }
+
+        private IXLWorksheet AddErrorLogs(IXLWorksheet errorLogsWorksheet, List<LogMessage> logs, int emptyRowNumber)
+        {
+            for (int i = 0; i < logs.Count; i++)
+            {
+                errorLogsWorksheet.Cell(i + emptyRowNumber, 1).Value = i + emptyRowNumber - 1;
+                errorLogsWorksheet.Cell(i + emptyRowNumber, 2).Value = logs[i].LogDate;
+                errorLogsWorksheet.Cell(i + emptyRowNumber, 3).Value = logs[i].Method ?? "N/A";
+                errorLogsWorksheet.Cell(i + emptyRowNumber, 4).Value = logs[i].Parameters ?? "N/A";
+                errorLogsWorksheet.Cell(i + emptyRowNumber, 5).Value = logs[i].Message ?? "N/A";
+            }
+
+            errorLogsWorksheet.Columns().AdjustToContents();
+            return errorLogsWorksheet;
         }
     }
 }
