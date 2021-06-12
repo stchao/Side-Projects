@@ -32,16 +32,16 @@ namespace BasicWebScrapper
         public List<LogMessage> Errors { get { return _errors; } }
 
         // Method to get all desktop computers
-        public async Task<List<Computer>> GetDesktopComputers()
+        public async Task<List<Computer>> GetDesktopComputers(string firstPagePath, string followPagePaths)
         {
             // Get computers from first page only to extract last page
-            List<Computer> computers = await GetDesktopInformationFromPage("/site/desktop-computers/all-desktops/pcmcat143400050013.c?id=pcmcat143400050013", true);
+            List<Computer> computers = await GetInformationFromPage(firstPagePath, true);
 
             // Declare and create a task for each page up to and including the last page
             List<Task<List<Computer>>> computersTask = new List<Task<List<Computer>>>();
             for (int i = 1; i < _lastPageNumber + 1; i++)
             {
-                computersTask.Add(GetDesktopInformationFromPage("/site/desktop-computers/all-desktops/pcmcat143400050013.c?cp=" + i + "&id=pcmcat143400050013", false));
+                computersTask.Add(GetInformationFromPage(followPagePaths + i, false));
             }
 
             // Wait until all the tasks are complete then merge lists of computers together
@@ -55,7 +55,7 @@ namespace BasicWebScrapper
         }
 
         // Method to get the computer information from the page of the path string
-        public async Task<List<Computer>> GetDesktopInformationFromPage(string pathString, bool firstPage)
+        public async Task<List<Computer>> GetInformationFromPage(string pathString, bool firstPage)
         {
             try
             {
@@ -172,6 +172,9 @@ namespace BasicWebScrapper
             } else if (computerAvailabilityString.ToLower().Contains("sold out"))
             {
                 return "No: Sold Out";
+            } else if (computerAvailabilityString.ToLower().Contains("coming soon"))
+            {
+                return "No: Coming Soon";
             }
             return "N/A";
         }

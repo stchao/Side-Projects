@@ -40,10 +40,14 @@ namespace BasicWebScrapper
             //var computers = await _bestBuyComputers.GetDesktopInformationFromPage("site/desktop-computers/all-desktops/pcmcat143400050013.c?id=pcmcat143400050013", true);
             //var test = _extractSpecification.ExtractFromString("ASUS - M241DA 23.8&#x27;&#x27; Touch-Screen All-In-One - AMD R5-3500U - 8GB Memory - 256GB Solid State Drive - Black - Black");
 
-            var computers = await _bestBuyComputers.GetDesktopComputers();            
+            var desktopComputersTask = _bestBuyComputers.GetDesktopComputers("/site/desktop-computers/all-desktops/pcmcat143400050013.c", "/site/desktop-computers/all-desktops/pcmcat143400050013.c?cp=");
+            var laptopComputersTask = _bestBuyComputers.GetDesktopComputers("/site/laptop-computers/all-laptops/pcmcat138500050001.c", "/site/laptop-computers/all-laptops/pcmcat138500050001.c?cp=");
+            List<Computer> desktopComputers = await desktopComputersTask;
+            List<Computer> laptopComputers = await laptopComputersTask;
 
             endTime = DateTime.Now;
-            _excelUtility.AddComputersToWorkbook("BestBuy - Desktops", _bestBuyURL, computers);
+            _excelUtility.AddComputersToWorkbook("BestBuy - Desktops", _bestBuyURL, desktopComputers);
+            _excelUtility.AddComputersToWorkbook("BestBuy - Laptops", _bestBuyURL, laptopComputers);
             _excelUtility.AddLogsToWorkbook("Logs", new List<LogMessage>());
 
             _errors.AddRange(_bestBuyComputers.Errors);

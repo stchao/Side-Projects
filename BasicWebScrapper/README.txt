@@ -4,6 +4,7 @@ Change Log:
 Version 1.0.2:
 - Added methods to handle creating an Excel document for logs, or adding to the Excel document if there already is one
 - Modified helper methods that check if a file exists or returns an available file name to take different file type extensions
+- Modified method that handled creating the tasks for getting the information from the pages to take string parameters of the page paths, which allowed us the utilized the same methods to also get all the laptops as well
 - Average run time is (first: 0:23.2005635; second: 0:22.2797148)
 
 Version 1.0.1:
