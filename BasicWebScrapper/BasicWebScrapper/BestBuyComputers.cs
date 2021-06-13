@@ -12,6 +12,10 @@ namespace BasicWebScrapper
         private readonly HttpClient _httpClient;
         private readonly ExtractSpecification _extractSpecification;
         private readonly List<LogMessage> _errors;
+        private readonly List<Computer> _newComputers;
+        private readonly List<Computer> _openBoxComputers;
+        private readonly List<Computer> _refurbishedComputers;
+        private readonly List<Computer> _unavailableComputers;
 
         // private regex variables for extracting information 
         private readonly Regex _computerInformationRegex = new Regex("<div class=\"sku-title\">.*<\\/div>");
@@ -28,34 +32,52 @@ namespace BasicWebScrapper
             _httpClient = httpClientFactory.CreateClient("BestBuy");
             _extractSpecification = new ExtractSpecification();
             _errors = new List<LogMessage>();
+            _newComputers = new List<Computer>();
+            _openBoxComputers = new List<Computer>();
+            _refurbishedComputers = new List<Computer>();
+            _unavailableComputers = new List<Computer>();            
         }
         public List<LogMessage> Errors { get { return _errors; } }
+        public List<Computer> NewComputers { get { return _newComputers; } }
+        public List<Computer> OpenBoxComputers { get { return _openBoxComputers; } }
+        public List<Computer> RefurbishedComputers { get { return _refurbishedComputers; } }
+        public List<Computer> UnavailableComputers { get { return _unavailableComputers; } }
 
         // Method to get all desktop computers
-        public async Task<List<Computer>> GetDesktopComputers(string firstPagePath, string followPagePaths)
+        public async Task<bool> GetComputers(string firstPagePath, string followPagePaths, string computerType)
         {
             // Get computers from first page only to extract last page
-            List<Computer> computers = await GetInformationFromPage(firstPagePath, true);
+            bool successfullyRetrievedFirstPage = await GetInformationFromPage(firstPagePath, true, computerType);
 
-            // Declare and create a task for each page up to and including the last page
-            List<Task<List<Computer>>> computersTask = new List<Task<List<Computer>>>();
-            for (int i = 1; i < _lastPageNumber + 1; i++)
+            if (successfullyRetrievedFirstPage)
             {
-                computersTask.Add(GetInformationFromPage(followPagePaths + i, false));
-            }
+                // Declare and create a task for each page up to and including the last page
+                List<Task<bool>> successfullyRetrieveOtherPagesTasks = new List<Task<bool>>();
+                for (int i = 1; i < _lastPageNumber + 1; i++)
+                {
+                    successfullyRetrieveOtherPagesTasks.Add(GetInformationFromPage(followPagePaths + i, false, computerType));
+                }
 
-            // Wait until all the tasks are complete then merge lists of computers together
-            var computersArray = await Task.WhenAll(computersTask);
-            for (int j = 0; j < computersArray.Length; j++)
+                // Wait until all the tasks are complete
+                await Task.WhenAll(successfullyRetrieveOtherPagesTasks);
+
+                return true;
+            }
+            else
             {
-                computers.AddRange(computersArray[j]);
+                _errors.Add(new LogMessage
+                {
+                    LogDate = DateTime.Now,
+                    Method = "GetDesktopComputers",
+                    Parameters = "Path string: " + firstPagePath,
+                    Message = "Unable to retrieve first page"
+                });
             }
-
-            return computers;
+            return false;
         }
 
         // Method to get the computer information from the page of the path string
-        public async Task<List<Computer>> GetInformationFromPage(string pathString, bool firstPage)
+        public async Task<bool> GetInformationFromPage(string pathString, bool firstPage, string computerType)
         {
             try
             {
@@ -63,8 +85,7 @@ namespace BasicWebScrapper
 
                 // Continue if the 'GET' was successful, indicated by a status code of 'OK'
                 if (response.StatusCode == HttpStatusCode.OK)
-                {
-                    var computers = new List<Computer>();
+                {                    
                     var bestBuyHTML = await response.Content.ReadAsStringAsync();
 
                     // Get last number number if this method is called on the first page
@@ -105,15 +126,15 @@ namespace BasicWebScrapper
 
                         // Assign extracted substrings to the appropriate computer property and then add the computer object to the list of computers
                         computer = _extractSpecification.ExtractFromString(computerSpecifications);
-                        computer.Availability = CheckStringForAvailability(computerInformationMatch, computerAvailabilityMatches[i].Groups[0].Value);
+                        computer.Type = computerType;
                         computer.Model = GetSubString(computerInformationMatch, computerModelStartIndex, "</span>", computerSpanHTMLLength);
                         computer.SKU = GetSubString(computerInformationMatch, computerSKUStartIndex, "</span>", computerSpanHTMLLength);
                         computer.Link = computerInformationMatch[linkStartIndex..linkEndIndex];
                         computer.Cost = computerPriceMatches[i].Groups[1].Value.Replace("<!-- -->", "");
-                        computers.Add(computer);
+                        CheckAvailabilityAndAddToList(computerInformationMatch, computerAvailabilityMatches[i].Groups[0].Value, computer);
                     }
 
-                    return computers;
+                    return true;
                 }
                 else
                 {
@@ -134,10 +155,9 @@ namespace BasicWebScrapper
                     Method = "GetDesktopInformationFromPage",
                     Parameters = "Path string: " + pathString,
                     Message = e.Message
-                });
-            }            
-
-            return new List<Computer>();
+                });                
+            }
+            return false;
         }
 
         // Method to get the substring while accounting for the starting index
@@ -151,32 +171,45 @@ namespace BasicWebScrapper
             return "N/A";
         }
 
-        // Method to check the 'add to cart' button to determine availability and condition of the computer
-        private string CheckStringForAvailability(string computerSpecificationString, string computerAvailabilityString)
+        // Method to check the 'add to cart' button to determine availability and condition of the computer and add to respective list
+        private void CheckAvailabilityAndAddToList(string computerSpecificationString, string computerAvailabilityString, Computer computer)
         {
-
             if (computerAvailabilityString.ToLower().Contains("add to cart"))
             {
                 if (computerSpecificationString.ToLower().Contains("refurbished")) {
-                    return "Yes: Refurbished";
-                }                 
-                return "Yes: New";
+                    computer.Availability = "Refurbished";
+                    _refurbishedComputers.Add(computer);
+                } else
+                {
+                    computer.Availability = "New";
+                    _newComputers.Add(computer);
+                }
             }
             else if (computerAvailabilityString.ToLower().Contains("check stores") || computerAvailabilityString.ToLower().Contains("unavailable nearby")) 
             {
-                return "Check Stores";
+                computer.Availability = "Check Stores";
+                _unavailableComputers.Add(computer);
             }
             else if (computerAvailabilityString.ToLower().Contains("shop open-box"))
             {
-                return "Yes: Open-Box";
-            } else if (computerAvailabilityString.ToLower().Contains("sold out"))
+                computer.Availability = "Open-Box";
+                _openBoxComputers.Add(computer);
+            } 
+            else if (computerAvailabilityString.ToLower().Contains("sold out"))
             {
-                return "No: Sold Out";
-            } else if (computerAvailabilityString.ToLower().Contains("coming soon"))
+                computer.Availability = "Sold Out";
+                _unavailableComputers.Add(computer);
+            } 
+            else if (computerAvailabilityString.ToLower().Contains("coming soon"))
             {
-                return "No: Coming Soon";
+                computer.Availability = "Coming Soon";
+                _unavailableComputers.Add(computer);
+            } 
+            else
+            {
+                computer.Availability = "N/A";
+                _unavailableComputers.Add(computer);
             }
-            return "N/A";
         }
     }
 

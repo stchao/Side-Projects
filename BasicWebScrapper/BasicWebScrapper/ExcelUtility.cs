@@ -22,33 +22,37 @@ namespace BasicWebScrapper
             try
             {
                 var worksheet = _xlComputersWorkbook.Worksheets.Add(worksheetName);
+                var offset = worksheetName != "Unavailable" ? 0 : 1;
 
-                // Adding column names
-                worksheet.Cell(1, 1).Value = "Title";
-                worksheet.Cell(1, 2).Value = "Availability";
-                worksheet.Cell(1, 3).Value = "Brand";
-                worksheet.Cell(1, 4).Value = "Model";
-                worksheet.Cell(1, 5).Value = "SKU";
-                worksheet.Cell(1, 6).Value = "CPU";
-                worksheet.Cell(1, 7).Value = "GPU";
-                worksheet.Cell(1, 8).Value = "RAM";
-                worksheet.Cell(1, 9).Value = "Storage";
-                worksheet.Cell(1, 10).Value = "Cost";
-                worksheet.Cell(1, 11).Value = "Link";
+                // Adding column names and only add the availability column if the worksheet name is unavailable, which
+                // contains multiple conditions (sold out, check stores, unavailable, n/a, etc)
+                if (worksheetName == "Unavailable") { worksheet.Cell(1, offset).Value = "Availability"; }                
+                worksheet.Cell(1, 1 + offset).Value = "Brand";
+                worksheet.Cell(1, 2 + offset).Value = "Model";
+                worksheet.Cell(1, 3 + offset).Value = "Type";
+                worksheet.Cell(1, 4 + offset).Value = "Cost";
+                worksheet.Cell(1, 5 + offset).Value = "CPU";
+                worksheet.Cell(1, 6 + offset).Value = "GPU";
+                worksheet.Cell(1, 7 + offset).Value = "RAM";
+                worksheet.Cell(1, 8 + offset).Value = "Storage";
+                worksheet.Cell(1, 9 + offset).Value = "Link";
+                worksheet.Cell(1, 10 + offset).Value = "SKU";
+                worksheet.Cell(1, 11 + offset).Value = "Title";   
 
                 for (int i = 0; i < computers.Count; i++)
                 {
-                    worksheet.Cell(i + 2, 1).Value = computers[i].Title ?? "N/A";
-                    worksheet.Cell(i + 2, 2).Value = computers[i].Availability ?? "N/A";
-                    worksheet.Cell(i + 2, 3).Value = computers[i].Brand ?? "N/A";
-                    worksheet.Cell(i + 2, 4).Value = computers[i].Model ?? "N/A";
-                    worksheet.Cell(i + 2, 5).Value = computers[i].SKU ?? "N/A";
-                    worksheet.Cell(i + 2, 6).Value = computers[i].CPU ?? "N/A";
-                    worksheet.Cell(i + 2, 7).Value = computers[i].GPU ?? "N/A";
-                    worksheet.Cell(i + 2, 8).Value = computers[i].RAM ?? "N/A";
-                    worksheet.Cell(i + 2, 9).Value = computers[i].Storage ?? "N/A";
-                    worksheet.Cell(i + 2, 10).Value = computers[i].Cost ?? "N/A";
-                    worksheet.Cell(i + 2, 11).Value = (computers[i].Link == null ? "N/A" : domainString + computers[i].Link);
+                    if (worksheetName == "Unavailable") { worksheet.Cell(i + 2, offset).Value = computers[i].Availability ?? "N/A"; }
+                    worksheet.Cell(i + 2, 1 + offset).Value = computers[i].Brand ?? "N/A";
+                    worksheet.Cell(i + 2, 2 + offset).Value = computers[i].Model ?? "N/A";
+                    worksheet.Cell(i + 2, 3 + offset).Value = computers[i].Type ?? "N/A";
+                    worksheet.Cell(i + 2, 4 + offset).Value = computers[i].Cost ?? "N/A";
+                    worksheet.Cell(i + 2, 5 + offset).Value = computers[i].CPU ?? "N/A";
+                    worksheet.Cell(i + 2, 6 + offset).Value = computers[i].GPU ?? "N/A";
+                    worksheet.Cell(i + 2, 7 + offset).Value = computers[i].RAM ?? "N/A";
+                    worksheet.Cell(i + 2, 8 + offset).Value = computers[i].Storage ?? "N/A";
+                    worksheet.Cell(i + 2, 9 + offset).Value = (computers[i].Link == null ? "N/A" : domainString + computers[i].Link);
+                    worksheet.Cell(i + 2, 10 + offset).Value = computers[i].SKU ?? "N/A";
+                    worksheet.Cell(i + 2, 11 + offset).Value = computers[i].Title ?? "N/A";                   
                 }
 
                 worksheet.Columns().AdjustToContents();
