@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -17,11 +18,14 @@ namespace BasicWebScrapper
         private static DateTime endExportTime;
         private static IHttpClientFactory _httpClientFactory;
         private static ExcelUtility _excelUtility;
-        private static ExtractSpecification _extractSpecification;
-        private static BestBuyComputers _bestBuyComputers;
+        private static BestBuy _bestBuyComputers;
         private static List<LogMessage> _errors;
+        private static string _bestBuyDesktopComputersFirstPagePath;
+        private static string _bestBuyDesktopComputersFollowingPagePath;
+        private static string _bestBuyLaptopComputersFirstPagePath;
+        private static string _bestBuyLaptopComputersFollowingPagePath;
 
-        static async Task Main(string[] args)
+        static async Task Main()
         {
             startTime = DateTime.Now;
 
@@ -40,10 +44,10 @@ namespace BasicWebScrapper
             //var computers = await _bestBuyComputers.GetDesktopInformationFromPage("site/desktop-computers/all-desktops/pcmcat143400050013.c?id=pcmcat143400050013", true);
             //var test = _extractSpecification.ExtractFromString("ASUS - M241DA 23.8&#x27;&#x27; Touch-Screen All-In-One - AMD R5-3500U - 8GB Memory - 256GB Solid State Drive - Black - Black");
 
-            var desktopComputersTask = _bestBuyComputers.GetComputers("/site/desktop-computers/all-desktops/pcmcat143400050013.c", "/site/desktop-computers/all-desktops/pcmcat143400050013.c?cp=", "Desktop");
-            var laptopComputersTask = _bestBuyComputers.GetComputers("/site/laptop-computers/all-laptops/pcmcat138500050001.c", "/site/laptop-computers/all-laptops/pcmcat138500050001.c?cp=", "Laptop");
-            await desktopComputersTask;
-            await laptopComputersTask;
+            var bestBuyDesktopComputersTask = _bestBuyComputers.GetComputers(_bestBuyDesktopComputersFirstPagePath, _bestBuyDesktopComputersFollowingPagePath, "Desktop");
+            var bestBuyLaptopComputersTask = _bestBuyComputers.GetComputers(_bestBuyLaptopComputersFirstPagePath, _bestBuyLaptopComputersFollowingPagePath, "Laptop");
+            await bestBuyDesktopComputersTask;
+            await bestBuyLaptopComputersTask;
 
             endTime = DateTime.Now;
             _excelUtility.AddComputersToWorkbook("New", _bestBuyURL, _bestBuyComputers.NewComputers);
@@ -87,8 +91,12 @@ namespace BasicWebScrapper
 
             _errors = new List<LogMessage>();
             _excelUtility = new ExcelUtility();
-            _extractSpecification = new ExtractSpecification();
-            _bestBuyComputers = new BestBuyComputers(_httpClientFactory);
+            _bestBuyComputers = new BestBuy(_httpClientFactory);
+
+            _bestBuyDesktopComputersFirstPagePath = "/site/desktop-computers/all-desktops/pcmcat143400050013.c";
+            _bestBuyDesktopComputersFollowingPagePath = "/site/desktop-computers/all-desktops/pcmcat143400050013.c?cp=";
+            _bestBuyLaptopComputersFirstPagePath = "/site/desktop-computers/all-desktops/pcmcat143400050013.c";
+            _bestBuyLaptopComputersFollowingPagePath = "/site/desktop-computers/all-desktops/pcmcat143400050013.c?cp=";
         }
 
         // Method to get app settings information

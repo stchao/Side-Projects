@@ -1,6 +1,10 @@
-Current Version 1.0.2
+Current Version 1.2.0
 
 Change Log:
+Version 1.2.0:
+- Modified the methods to use base classes instead of repeatedly writing methods that do the exact same thing
+- Re-organized the classes into folders to improve layout and readibility
+
 Version 1.1.0:
 - Modified the methods that gets computers to account for the availability or condition of the computers by adding to the corresponding lists, which are now part of the class instead of being returned by the methods
 - Modified the method that adds them to the workbook by adding the computers to a corresponding worksheet based onthe availability or condition of the computer

@@ -5,15 +5,14 @@ using System.IO;
 
 namespace BasicWebScrapper
 {
-    class ExcelUtility
+    class ExcelUtility : HelperMethods
     {
-        private HelperMethods _helperMethods = new HelperMethods();
-        private XLWorkbook _xlComputersWorkbook = new XLWorkbook();
+        private readonly XLWorkbook _xlComputersWorkbook = new XLWorkbook();
         private XLWorkbook _xlLogsWorkbook = new XLWorkbook();
-        private List<LogMessage> _errors = new List<LogMessage>();
+        private readonly List<LogMessage> _errors = new List<LogMessage>();
 
-        private string _logFileName = "BasicWebScrapperLogs";
-        private string _excelFileTypeExtension = ".xlsx";
+        private readonly string _logFileName = "BasicWebScrapperLogs";
+        private readonly string _excelFileTypeExtension = ".xlsx";
 
         public List<LogMessage> Errors { get { return _errors; } }
 
@@ -73,7 +72,7 @@ namespace BasicWebScrapper
                 
         public bool AddLogsToWorkbook(string worksheetName, List<LogMessage> logs)
         {
-            var logFileName = _helperMethods.GetAvailableFileName(_logFileName, _excelFileTypeExtension);
+            var logFileName = GetAvailableFileName(_logFileName, _excelFileTypeExtension);
 
             try
             {
@@ -81,7 +80,7 @@ namespace BasicWebScrapper
                 if (logFileName == "BasicWebScrapperLogs.xlsx")
                 {
                     // Get the path and assign the global workbook variable to the file found
-                    var filePath = _helperMethods.CreateCurrentDirectoryPath(_logFileName);
+                    var filePath = CreateCurrentDirectoryPath(_logFileName);
                     _xlLogsWorkbook = new XLWorkbook(filePath);
 
                     // Open the worksheet based on the given parameter and find the next empty row
@@ -143,7 +142,7 @@ namespace BasicWebScrapper
 
         public void ExportWorkbooksToExcel()
         {
-            _xlComputersWorkbook.SaveAs($"{Directory.GetCurrentDirectory()}\\{_helperMethods.GetAvailableFileName("ComputerList", _excelFileTypeExtension)}");
+            _xlComputersWorkbook.SaveAs($"{Directory.GetCurrentDirectory()}\\{GetAvailableFileName("ComputerList", _excelFileTypeExtension)}");
             _xlLogsWorkbook.SaveAs($"{Directory.GetCurrentDirectory()}\\{_logFileName}{_excelFileTypeExtension}");
             _xlComputersWorkbook.Dispose();
             _xlLogsWorkbook.Dispose();
