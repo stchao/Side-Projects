@@ -20,7 +20,8 @@ namespace BasicWebScrapper
         // Initializing private variables
         public BestBuy(IHttpClientFactory httpClientFactory)
         {
-            _httpClient = httpClientFactory.CreateClient("BestBuy");      
+            //_httpClient = httpClientFactory.CreateClient("BestBuy");
+            _httpClient = httpClientFactory.CreateClient("OfficeDepot");
         }
 
         // Method to get the computer information from the page of the path string
@@ -34,6 +35,8 @@ namespace BasicWebScrapper
                 if (response.StatusCode == HttpStatusCode.OK)
                 {                    
                     var bestBuyHTML = await response.Content.ReadAsStringAsync();
+
+                    bestBuyHTML = bestBuyHTML.Replace("\t", "").Replace("\n", "").Replace("\r", "");
 
                     // Get last number number if this method is called on the first page
                     if (firstPage)

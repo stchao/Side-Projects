@@ -72,6 +72,7 @@ namespace BasicWebScrapper
             return false;
         }
 
+        public abstract Task<bool> GetInformationFromPage(string pathString, bool firstPage, string computerType);
 
         // Method to get the substring while accounting for the starting index
         public string GetSubString(string computerSpecificationString, int startIndex, string endIndexString, int indexOffset)
@@ -125,9 +126,7 @@ namespace BasicWebScrapper
                 computer.Availability = "N/A";
                 _unavailableComputers.Add(computer);
             }
-        }
-
-        public abstract Task<bool> GetInformationFromPage(string pathString, bool firstPage, string computerType);        
+        }              
 
         // Method to extract the computer specifications from a given string
         public Computer ExtractFromString(string specificationString)
