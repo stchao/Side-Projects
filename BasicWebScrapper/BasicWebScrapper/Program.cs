@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using BasicWebScrapper.Sites;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json.Linq;
 using System;
@@ -20,6 +21,7 @@ namespace BasicWebScrapper
         private static IHttpClientFactory _httpClientFactory;
         private static ExcelUtility _excelUtility;
         private static BestBuy _bestBuyComputers;
+        private static OfficeDepot _officeDepotComputers;
         private static List<LogMessage> _errors;
         private static string _bestBuyDesktopComputersFirstPagePath;
         private static string _bestBuyDesktopComputersFollowingPagePath;
@@ -42,7 +44,22 @@ namespace BasicWebScrapper
             //HelperMethods helperMethods = new HelperMethods();
             //var test = helperMethods.DoesFileExist("ComputerList");
             //var test2 = helperMethods.CheckAndGetFileName("ComputerList");
-            var computers = await _bestBuyComputers.GetInformationFromPage("desktop-computers/N=5+1461989&viewAllSkus=true&recordsPerPageNumber=72&No=0/", false, "Desktop");
+            var computers = await _officeDepotComputers.GetInformationFromPage("desktop-computers/N=5+1461989&viewAllSkus=true&recordsPerPageNumber=72&No=0/", false, "Desktop");
+            endTime = DateTime.Now;
+            _excelUtility.AddComputersToWorkbook("New", _bestBuyURL, _officeDepotComputers.NewComputers);
+            _excelUtility.AddComputersToWorkbook("Open-Box", _bestBuyURL, _officeDepotComputers.OpenBoxComputers);
+            _excelUtility.AddComputersToWorkbook("Refurbished", _bestBuyURL, _officeDepotComputers.RefurbishedComputers);
+            _excelUtility.AddComputersToWorkbook("Unavailable", _bestBuyURL, _officeDepotComputers.UnavailableComputers);
+            _excelUtility.AddLogsToWorkbook("Logs", new List<LogMessage>());
+
+            _errors.AddRange(_bestBuyComputers.Errors);
+            _errors.AddRange(_excelUtility.Errors);
+            _excelUtility.AddLogsToWorkbook("Errors", _errors);
+
+            _excelUtility.ExportWorkbooksToExcel();
+            endExportTime = DateTime.Now;
+            Console.WriteLine($"Get Computers: {endTime - startTime}\nExport: {endExportTime - endTime}");
+
             //var test = _extractSpecification.ExtractFromString("ASUS - M241DA 23.8&#x27;&#x27; Touch-Screen All-In-One - AMD R5-3500U - 8GB Memory - 256GB Solid State Drive - Black - Black");
 
             var bestBuyDesktopComputersTask = _bestBuyComputers.GetComputers(_bestBuyDesktopComputersFirstPagePath, _bestBuyDesktopComputersFollowingPagePath, "Desktop");
@@ -108,6 +125,7 @@ namespace BasicWebScrapper
             _errors = new List<LogMessage>();
             _excelUtility = new ExcelUtility();
             _bestBuyComputers = new BestBuy(_httpClientFactory);
+            _officeDepotComputers = new OfficeDepot(_httpClientFactory);
 
             _bestBuyDesktopComputersFirstPagePath = "/site/desktop-computers/all-desktops/pcmcat143400050013.c";
             _bestBuyDesktopComputersFollowingPagePath = "/site/desktop-computers/all-desktops/pcmcat143400050013.c?cp=";
