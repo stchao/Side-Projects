@@ -90,7 +90,12 @@ namespace BasicWebScrapper
         {
             if (computerAvailabilityString.ToLower().Contains("add to cart"))
             {
-                if (computerSpecificationString.ToLower().Contains("refurbished"))
+                if (computerSpecificationString.ToLower().Contains("disabled=\"disabled\""))
+                {
+                    computer.Availability = "Sold Out";
+                    _unavailableComputers.Add(computer);
+                } 
+                else if (computerSpecificationString.ToLower().Contains("refurbished"))
                 {
                     computer.Availability = "Refurbished";
                     _refurbishedComputers.Add(computer);

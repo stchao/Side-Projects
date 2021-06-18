@@ -12,10 +12,10 @@ namespace BasicWebScrapper
         private readonly HttpClient _httpClient;
 
         // private regex variables for extracting information 
-        private readonly Regex _computerInformationRegex = new Regex("<div class=\"sku-title\">.*<\\/div>");
-        private readonly Regex _computerPriceRegex = new Regex("<span(?: class=\"open-box-lowest-price\")? aria-hidden=\"true\">([$](?:<!-- -->)?\\d{0,2}?,?\\d{0,3}.\\d{0,2})<\\/span>");
-        private readonly Regex _lastPageNumberRegex = new Regex("class=\"trans-button page-number\" aria-label=\"Results Page \\d\\d\">(\\d\\d)");
-        private readonly Regex _computerAvailabilityRegex = new Regex("(?:style=\"padding:0 8px\">)(.*)(?:<\\/button>|<\\/a>)");
+        private readonly Regex _computerInformationRegex = new Regex("<div class=\"sku-title\">.*<\\/div>", RegexOptions.IgnoreCase);
+        private readonly Regex _computerPriceRegex = new Regex("<span(?: class=\"open-box-lowest-price\")? aria-hidden=\"true\">([$](?:<!-- -->)?\\d{0,2}?,?\\d{0,3}.\\d{0,2})<\\/span>", RegexOptions.IgnoreCase);
+        private readonly Regex _lastPageNumberRegex = new Regex("class=\"trans-button page-number\" aria-label=\"Results Page \\d\\d\">(\\d\\d)", RegexOptions.IgnoreCase);
+        private readonly Regex _computerAvailabilityRegex = new Regex("(?:style=\"padding:0 8px\">)(.*)(?:<\\/button>|<\\/a>)", RegexOptions.IgnoreCase);
 
         // Initializing private variables
         public BestBuy(IHttpClientFactory httpClientFactory)

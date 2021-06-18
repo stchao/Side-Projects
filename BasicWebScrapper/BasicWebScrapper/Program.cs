@@ -44,30 +44,30 @@ namespace BasicWebScrapper
             //HelperMethods helperMethods = new HelperMethods();
             //var test = helperMethods.DoesFileExist("ComputerList");
             //var test2 = helperMethods.CheckAndGetFileName("ComputerList");
-            var computers = await _officeDepotComputers.GetInformationFromPage("desktop-computers/N=5+1461989&viewAllSkus=true&recordsPerPageNumber=72&No=0/", false, "Desktop");
+            var computers = await _officeDepotComputers.GetInformationFromPage("/desktop-computers/N=5+1461989&viewAllSkus=true&recordsPerPageNumber=72&No=0/", false, "Desktop");
             endTime = DateTime.Now;
-            _excelUtility.AddComputersToWorkbook("New", _bestBuyURL, _officeDepotComputers.NewComputers);
-            _excelUtility.AddComputersToWorkbook("Open-Box", _bestBuyURL, _officeDepotComputers.OpenBoxComputers);
-            _excelUtility.AddComputersToWorkbook("Refurbished", _bestBuyURL, _officeDepotComputers.RefurbishedComputers);
-            _excelUtility.AddComputersToWorkbook("Unavailable", _bestBuyURL, _officeDepotComputers.UnavailableComputers);
+            _excelUtility.AddComputersToWorkbook("New", _officeDepotURL, _officeDepotComputers.NewComputers);
+            _excelUtility.AddComputersToWorkbook("Open-Box", _officeDepotURL, _officeDepotComputers.OpenBoxComputers);
+            _excelUtility.AddComputersToWorkbook("Refurbished", _officeDepotURL, _officeDepotComputers.RefurbishedComputers);
+            _excelUtility.AddComputersToWorkbook("Unavailable", _officeDepotURL, _officeDepotComputers.UnavailableComputers);
             _excelUtility.AddLogsToWorkbook("Logs", new List<LogMessage>());
 
-            _errors.AddRange(_bestBuyComputers.Errors);
-            _errors.AddRange(_excelUtility.Errors);
-            _excelUtility.AddLogsToWorkbook("Errors", _errors);
+            //_errors.AddRange(_bestBuyComputers.Errors);
+            //_errors.AddRange(_excelUtility.Errors);
+            //_excelUtility.AddLogsToWorkbook("Errors", _errors);
 
-            _excelUtility.ExportWorkbooksToExcel();
-            endExportTime = DateTime.Now;
-            Console.WriteLine($"Get Computers: {endTime - startTime}\nExport: {endExportTime - endTime}");
+            //_excelUtility.ExportWorkbooksToExcel();
+            //endExportTime = DateTime.Now;
+            //Console.WriteLine($"Get Computers: {endTime - startTime}\nExport: {endExportTime - endTime}");
 
             //var test = _extractSpecification.ExtractFromString("ASUS - M241DA 23.8&#x27;&#x27; Touch-Screen All-In-One - AMD R5-3500U - 8GB Memory - 256GB Solid State Drive - Black - Black");
+            var computers2 = await _bestBuyComputers.GetInformationFromPage("/site/desktop-computers/all-desktops/pcmcat143400050013.c?", false, "Desktop");
+            //var bestBuyDesktopComputersTask = _bestBuyComputers.GetComputers(_bestBuyDesktopComputersFirstPagePath, _bestBuyDesktopComputersFollowingPagePath, "Desktop");
+            //var bestBuyLaptopComputersTask = _bestBuyComputers.GetComputers(_bestBuyLaptopComputersFirstPagePath, _bestBuyLaptopComputersFollowingPagePath, "Laptop");
+            //await bestBuyDesktopComputersTask;
+            //await bestBuyLaptopComputersTask;
 
-            var bestBuyDesktopComputersTask = _bestBuyComputers.GetComputers(_bestBuyDesktopComputersFirstPagePath, _bestBuyDesktopComputersFollowingPagePath, "Desktop");
-            var bestBuyLaptopComputersTask = _bestBuyComputers.GetComputers(_bestBuyLaptopComputersFirstPagePath, _bestBuyLaptopComputersFollowingPagePath, "Laptop");
-            await bestBuyDesktopComputersTask;
-            await bestBuyLaptopComputersTask;
-
-            endTime = DateTime.Now;
+            //endTime = DateTime.Now;
             _excelUtility.AddComputersToWorkbook("New", _bestBuyURL, _bestBuyComputers.NewComputers);
             _excelUtility.AddComputersToWorkbook("Open-Box", _bestBuyURL, _bestBuyComputers.OpenBoxComputers);
             _excelUtility.AddComputersToWorkbook("Refurbished", _bestBuyURL, _bestBuyComputers.RefurbishedComputers);
@@ -87,7 +87,7 @@ namespace BasicWebScrapper
         static void InitializeVariables()
         {
             _bestBuyURL = "https://www.bestbuy.com";
-            _officeDepotURL = "https://www.officedepot.com/a/browse/";
+            _officeDepotURL = "https://www.officedepot.com/a/browse";
 
             var serviceProvider = new ServiceCollection();
             

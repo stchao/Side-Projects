@@ -18,10 +18,10 @@ namespace BasicWebScrapper.Sites
         // private regex variables for extracting information 
         private readonly Regex _specificationMultipleSpacesRegex = new Regex(@"\p{Zs}{2,}");
 
-        private readonly Regex _computerInformationRegex = new Regex("<div class=\"sku_ratings\">.*?<\\/div>");
-        private readonly Regex _computerPriceRegex = new Regex("<span class=\"price_column right \">.*?<\\/span>");
-        private readonly Regex _lastPageNumberRegex = new Regex("class=\"trans-button page-number\" aria-label=\"Results Page \\d\\d\">(\\d\\d)");
-        private readonly Regex _computerAvailabilityRegex = new Regex("(?:style=\"padding:0 8px\">)(.*)(?:<\\/button>|<\\/a>)");
+        private readonly Regex _computerInformationRegex = new Regex("<div class=\"desc_text \">.*?<\\/div>", RegexOptions.IgnoreCase);
+        private readonly Regex _computerPriceRegex = new Regex("<span class=\"price_column right \">.(\\$\\d{1,5}.\\d{2,}).<\\/span>", RegexOptions.IgnoreCase);
+        private readonly Regex _lastPageNumberRegex = new Regex("\"skuList_results_v2\">(\\d*).*?<\\/span>", RegexOptions.IgnoreCase);
+        private readonly Regex _computerAvailabilityRegex = new Regex("<input type=\"submit\" value=\"Add to Cart\".*?title=\"Add to Cart\" \\/>", RegexOptions.IgnoreCase);
 
         // Initializing private variables
         public OfficeDepot(IHttpClientFactory httpClientFactory)
@@ -67,23 +67,22 @@ namespace BasicWebScrapper.Sites
 
                         // Variables to store the link and computer specification indexes
                         var linkStartIndex = computerInformationMatch.IndexOf("<a href=\"") + "<a href=\"".Length;
-                        var linkEndIndex = computerInformationMatch.IndexOf("\">", linkStartIndex);
-                        var computerSpecificationStartIndex = linkEndIndex + "\">".Length;
-                        var computerSpecificationEndIndex = computerInformationMatch.IndexOf("</a>", computerSpecificationStartIndex);
+                        var linkEndIndex = computerInformationMatch.IndexOf("\"", linkStartIndex);
+                        var computerSpecificationStartIndex = linkEndIndex + "\" title=\"".Length;
+                        var computerSpecificationEndIndex = computerInformationMatch.IndexOf("\"", computerSpecificationStartIndex);
 
                         // Variables to store the SKU and model indexes
-                        var computerSpanHTMLLength = "<span class=\"sku-value\">".Length;
-                        var computerModelStartIndex = computerInformationMatch.IndexOf("<span class=\"sku-value\">");
-                        var computerSKUStartIndex = computerInformationMatch.IndexOf("<span class=\"sku-value\">", computerModelStartIndex > 0 ? computerModelStartIndex + computerSpanHTMLLength : 0);
+                        var computerSpanHTMLLength = "product-id=\"".Length;
+                        var computerSKUStartIndex = computerInformationMatch.IndexOf("product-id=\"");
 
-                        // Variable to store the extracted computer specification substring 
-                        var computerSpecifications = computerInformationMatch[computerSpecificationStartIndex..computerSpecificationEndIndex].Replace("&quot;", "\"").Replace("&#x27;", "'");
+                         // Variable to store the extracted computer specification substring 
+                         var computerSpecifications = computerInformationMatch[computerSpecificationStartIndex..computerSpecificationEndIndex].Replace("&quot;", "\"").Replace("&#x27;", "'");
 
                         // Assign extracted substrings to the appropriate computer property and then add the computer object to the list of computers
                         computer = ExtractFromString(computerSpecifications);
                         computer.Type = computerType;
-                        computer.Model = GetSubString(computerInformationMatch, computerModelStartIndex, "</span>", computerSpanHTMLLength);
-                        computer.SKU = GetSubString(computerInformationMatch, computerSKUStartIndex, "</span>", computerSpanHTMLLength);
+                        computer.Model = "N/A";
+                        computer.SKU = GetSubString(computerInformationMatch, computerSKUStartIndex + computerSpanHTMLLength, "\"", 0);
                         computer.Link = computerInformationMatch[linkStartIndex..linkEndIndex];
                         computer.Cost = computerPriceMatches[i].Groups[1].Value.Replace("<!-- -->", "");
                         CheckAvailabilityAndAddToList(computerInformationMatch, computerAvailabilityMatches[i].Groups[0].Value, computer);
